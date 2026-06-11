@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# env
+.env
+.env.local
+.env*.local
+
+# Payload / SQLite (local dev)
+database.db
+database.db-shm
+database.db-wal
+src/payload-types.ts
+
+# misc
+.DS_Store
+*.log
