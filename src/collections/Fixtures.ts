@@ -1,6 +1,9 @@
 import type { CollectionConfig } from 'payload'
 
+const isAuth = ({ req }: any) => !!req.user
+
 export const Fixtures: CollectionConfig = {
+  access: { read: () => true, create: isAuth, update: isAuth, delete: isAuth },
   slug: 'fixtures',
   admin: {
     useAsTitle: 'title',

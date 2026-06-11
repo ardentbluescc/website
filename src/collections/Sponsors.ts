@@ -1,6 +1,9 @@
 import type { CollectionConfig } from 'payload'
 
+const isAuth = ({ req }: any) => !!req.user
+
 export const Sponsors: CollectionConfig = {
+  access: { read: () => true, create: isAuth, update: isAuth, delete: isAuth },
   slug: 'sponsors',
   admin: { useAsTitle: 'name' },
   fields: [

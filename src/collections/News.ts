@@ -1,7 +1,10 @@
 import type { CollectionConfig } from 'payload'
 
+const isAuth = ({ req }: any) => !!req.user
+
 export const News: CollectionConfig = {
   slug: 'news',
+  access: { read: () => true, create: isAuth, update: isAuth, delete: isAuth },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'category', 'publishedAt', 'status'],

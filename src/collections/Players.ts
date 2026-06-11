@@ -1,7 +1,10 @@
 import type { CollectionConfig } from 'payload'
 
+const isAuth = ({ req }: any) => !!req.user
+
 export const Players: CollectionConfig = {
   slug: 'players',
+  access: { read: () => true, create: isAuth, update: isAuth, delete: isAuth },
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'group', 'jerseyNumber', 'role', 'battingStyle'],
