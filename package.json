@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-"generate:types": "payload generate:types",
+    "generate:types": "payload generate:types",
     "payload": "payload"
   },
   "dependencies": {
@@ -16,6 +16,7 @@
     "@payloadcms/db-sqlite": "^3.85.1",
     "@payloadcms/next": "^3.11.1",
     "@payloadcms/richtext-lexical": "^3.11.1",
+    "@payloadcms/storage-vercel-blob": "^3.85.1",
     "next": "15.4.11",
     "openai": "^6.42.0",
     "payload": "^3.11.1",
