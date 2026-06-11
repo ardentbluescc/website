@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "generate:types": "payload generate:types",
+"generate:types": "payload generate:types",
     "payload": "payload"
   },
   "dependencies": {

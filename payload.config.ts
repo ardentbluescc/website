@@ -46,6 +46,7 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL,
     },
+    push: true,
   }),
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
 })
