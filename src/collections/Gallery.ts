@@ -8,7 +8,6 @@ export const Gallery: CollectionConfig = {
   },
   upload: {
     staticDir: 'public/media',
-    staticURL: '/media',
     imageSizes: [
       { name: 'thumbnail', width: 400, height: 300, position: 'centre' },
       { name: 'card', width: 768, height: 500, position: 'centre' },

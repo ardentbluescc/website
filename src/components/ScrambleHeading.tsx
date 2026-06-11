@@ -16,7 +16,7 @@ function ScrambleWord({ text, delay, duration = 900, style, className }: WordPro
   const [display, setDisplay] = useState(text)
   const [revealed, setRevealed] = useState(false)
   const rafRef = useRef<number>(0)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     const letters = text.split('')
