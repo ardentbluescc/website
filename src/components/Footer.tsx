@@ -86,7 +86,7 @@ export default function Footer() {
 
         <div className="border-t border-ardent-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-gray-600 text-sm">
-            Copyright © 2025{' '}
+            Copyright © {new Date().getFullYear()}{' '}
             <span className="text-gray-500">Ardent Blues CC</span>. All Rights Reserved.
           </p>
           <p className="text-gray-600 text-sm">Northern Cricket Union — Official Member Club</p>
