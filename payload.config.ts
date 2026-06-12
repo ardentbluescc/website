@@ -40,6 +40,7 @@ export default buildConfig({
   collections: [Users, Members, News, Players, Teams, Gallery, Fixtures, Sponsors],
   plugins: [
     vercelBlobStorage({
+      enabled: !!process.env.BLOB_READ_WRITE_TOKEN,
       token: process.env.BLOB_READ_WRITE_TOKEN || '',
       collections: {
         gallery: true,

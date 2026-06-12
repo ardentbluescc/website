@@ -10,7 +10,7 @@ export const Gallery: CollectionConfig = {
     delete: ({ req }) => !!req.user,
   },
   upload: {
-    staticDir: 'public/media',
+    staticDir: process.env.VERCEL && !process.env.BLOB_READ_WRITE_TOKEN ? '/tmp/media' : 'public/media',
     imageSizes: [
       { name: 'thumbnail', width: 400, height: 300, position: 'centre' },
       { name: 'card', width: 768, height: 500, position: 'centre' },
