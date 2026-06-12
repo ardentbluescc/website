@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { RichText } from '@payloadcms/richtext-lexical/react'
 import { getNewsArticle } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
@@ -47,12 +48,9 @@ export default async function NewsArticlePage({ params }: { params: Promise<{ sl
           </p>
         )}
 
-        {/* Rich text content placeholder — Payload lexical renderer needed for full rich text */}
         {article.content && (
-          <div className="prose prose-invert prose-blue max-w-none text-gray-300">
-            <p className="text-gray-400 text-sm bg-ardent-card border border-ardent-border rounded-xl p-4">
-              Full article content renders here. Install <code>@payloadcms/richtext-lexical</code> JSX renderer for formatted output.
-            </p>
+          <div className="prose prose-invert prose-lg max-w-none text-gray-300 prose-headings:text-white prose-a:text-ardent-bright prose-strong:text-white prose-blockquote:border-ardent prose-blockquote:text-gray-400">
+            <RichText data={article.content} />
           </div>
         )}
       </div>
