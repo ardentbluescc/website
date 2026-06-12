@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { getNews } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
@@ -49,9 +50,20 @@ export default async function NewsPage() {
                 key={article.id}
                 className="bg-ardent-card border border-ardent-border rounded-2xl overflow-hidden hover:border-ardent/40 transition-all group"
               >
-                {/* Cover image placeholder */}
-                <div className="h-44 bg-gradient-to-br from-[#0d2b5e] to-[#1a4080] flex items-center justify-center">
-                  <span className="text-5xl select-none">🏏</span>
+                <div className="relative h-44 bg-gradient-to-br from-[#0d2b5e] to-[#1a4080] overflow-hidden">
+                  {(article as any).coverImage?.url ? (
+                    <Image
+                      src={(article as any).coverImage.url}
+                      alt={(article as any).coverImage.alt || article.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-5xl select-none opacity-30">🏏</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-5">
