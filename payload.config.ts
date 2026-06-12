@@ -59,4 +59,16 @@ export default buildConfig({
     push: true,
   }),
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
+  cors: [
+    'http://localhost:3000',
+    'https://abcca.vercel.app',
+    'https://abcca-xpnt.vercel.app',
+    ...(process.env.NEXT_PUBLIC_SERVER_URL ? [process.env.NEXT_PUBLIC_SERVER_URL] : []),
+  ],
+  csrf: [
+    'http://localhost:3000',
+    'https://abcca.vercel.app',
+    'https://abcca-xpnt.vercel.app',
+    ...(process.env.NEXT_PUBLIC_SERVER_URL ? [process.env.NEXT_PUBLIC_SERVER_URL] : []),
+  ],
 })
