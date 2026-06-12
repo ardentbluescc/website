@@ -43,7 +43,9 @@ export default buildConfig({
       enabled: !!process.env.BLOB_READ_WRITE_TOKEN,
       token: process.env.BLOB_READ_WRITE_TOKEN || '',
       collections: {
-        gallery: true,
+        gallery: {
+          disablePayloadAccessControl: true,
+        },
       },
     }),
   ],
