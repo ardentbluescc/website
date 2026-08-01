@@ -2,6 +2,7 @@ import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
+import { resendAdapter } from '@payloadcms/email-resend'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -13,6 +14,7 @@ import { Teams } from './src/collections/Teams'
 import { Gallery } from './src/collections/Gallery'
 import { Fixtures } from './src/collections/Fixtures'
 import { Sponsors } from './src/collections/Sponsors'
+import { ContactSubmissions } from './src/collections/ContactSubmissions'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -37,7 +39,7 @@ export default buildConfig({
       afterNavLinks: ['@/components/admin/ScorecardNavLink'],
     },
   },
-  collections: [Users, Members, News, Players, Teams, Gallery, Fixtures, Sponsors],
+  collections: [Users, Members, News, Players, Teams, Gallery, Fixtures, Sponsors, ContactSubmissions],
   plugins: [
     vercelBlobStorage({
       enabled: !!process.env.BLOB_READ_WRITE_TOKEN,
@@ -50,6 +52,13 @@ export default buildConfig({
     }),
   ],
   editor: lexicalEditor(),
+  email: process.env.RESEND_API_KEY
+    ? resendAdapter({
+        apiKey: process.env.RESEND_API_KEY,
+        defaultFromAddress: process.env.RESEND_FROM_ADDRESS || 'noreply@ardentbluescc.com',
+        defaultFromName: 'Ardent Blues CC',
+      })
+    : undefined,
   secret: process.env.PAYLOAD_SECRET || 'ardent-blues-dev-secret',
   typescript: {
     outputFile: path.resolve(dirname, 'src/payload-types.ts'),

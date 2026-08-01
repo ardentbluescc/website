@@ -95,6 +95,12 @@ Rules:
 
 export async function POST(req: Request) {
   try {
+    const payload = await getPayloadClient()
+    const { user } = await payload.auth({ headers: req.headers })
+    if (!user) {
+      return NextResponse.json({ error: 'You must be logged in to use this tool.' }, { status: 401 })
+    }
+
     if (!process.env.GROQ_API_KEY) {
       return NextResponse.json(
         { error: 'GROQ_API_KEY is not set. Add it to your .env.local file. Get a free key at console.groq.com' },
@@ -153,7 +159,6 @@ export async function POST(req: Request) {
     }
 
     // Fetch all players for name matching
-    const payload = await getPayloadClient()
     const { docs: players } = await payload.find({ collection: 'players', limit: 500 })
 
     const playerOptions = players.map((p: any) => ({ id: String(p.id), name: p.name }))

@@ -1,7 +1,6 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 import path from 'path'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const webpack = require('webpack')
 
 const nextConfig: NextConfig = {

@@ -252,7 +252,7 @@ export default function ScorecardImportPage() {
             </div>
             <div>
               <h1 className="font-display text-3xl font-normal text-white leading-none tracking-tight">Scorecard Import</h1>
-              <p className="text-gray-500 text-sm mt-0.5">Upload a match scorecard and we'll auto-fill player stats</p>
+              <p className="text-gray-500 text-sm mt-0.5">Upload a match scorecard and we&apos;ll auto-fill player stats</p>
             </div>
           </div>
         </div>
@@ -288,7 +288,7 @@ export default function ScorecardImportPage() {
               ))}
             </div>
             <p className="text-gray-600 text-xs mt-6 max-w-sm">
-              We'll use AI to read the scorecard, match players by name, and prefill their batting & bowling stats.
+              We&apos;ll use AI to read the scorecard, match players by name, and prefill their batting & bowling stats.
             </p>
           </div>
         )}

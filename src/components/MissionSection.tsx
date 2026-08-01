@@ -4,7 +4,7 @@ export default function MissionSection() {
       <div className="max-w-5xl mx-auto px-6">
         <p className="font-display text-[clamp(2.8rem,7vw,5.5rem)] font-normal text-white leading-[1.0] tracking-tight text-balance">
           Cricket is more than a sport.
-          It's discipline, passion, and the club you bleed for.
+          It&apos;s discipline, passion, and the club you bleed for.
         </p>
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-8 border-t border-white/20 pt-10">
           {[

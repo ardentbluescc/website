@@ -157,6 +157,12 @@ function mergeBowling(existing: any | null, nm: any, format: string) {
 
 export async function POST(req: Request) {
   try {
+    const payload = await getPayloadClient()
+    const { user } = await payload.auth({ headers: req.headers })
+    if (!user) {
+      return NextResponse.json({ error: 'You must be logged in to use this tool.' }, { status: 401 })
+    }
+
     const body = await req.json()
     const { format, entries } = body as {
       format: string
@@ -166,8 +172,6 @@ export async function POST(req: Request) {
     if (!format?.trim()) {
       return NextResponse.json({ error: 'Format/competition name is required.' }, { status: 400 })
     }
-
-    const payload = await getPayloadClient()
     let updated = 0
     const errors: string[] = []
 
