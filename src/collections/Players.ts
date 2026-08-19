@@ -89,6 +89,11 @@ export const Players: CollectionConfig = {
         { name: 'sixes', type: 'number', label: '6s' },
         { name: 'catches', type: 'number', label: 'Catches' },
         { name: 'stumpings', type: 'number', label: 'Stumpings' },
+        { name: 'runOuts', type: 'number', label: 'Run Outs', admin: { description: 'Run outs effected as a fielder' } },
+        {
+          name: 'importedMatchIds', type: 'text', hasMany: true,
+          admin: { hidden: true, description: 'NV Play match IDs already merged into this row — prevents double-import' },
+        },
       ],
     },
 
@@ -111,6 +116,10 @@ export const Players: CollectionConfig = {
         { name: 'strikeRate', type: 'number', label: 'Strike Rate' },
         { name: 'fourWickets', type: 'number', label: '4W' },
         { name: 'fiveWickets', type: 'number', label: '5W' },
+        {
+          name: 'importedMatchIds', type: 'text', hasMany: true,
+          admin: { hidden: true, description: 'NV Play match IDs already merged into this row — prevents double-import' },
+        },
       ],
     },
   ],

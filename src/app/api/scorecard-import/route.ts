@@ -10,45 +10,34 @@ function matchPlayer(scorecardName: string, players: any[]): any | null {
   const sn = normalize(scorecardName)
   const snParts = sn.split(' ').filter(Boolean)
 
-  // 1. Exact match
-  for (const p of players) {
-    if (normalize(p.name) === sn) return p
-  }
+  // 1. Exact full-name match.
+  const exact = players.filter(p => normalize(p.name) === sn)
+  if (exact.length === 1) return exact[0]
 
-  // 2. Last name match
-  const lastName = snParts[snParts.length - 1]
-  if (lastName && lastName.length > 2) {
-    for (const p of players) {
-      const pp = normalize(p.name).split(' ')
-      if (pp[pp.length - 1] === lastName) return p
-    }
-  }
-
-  // 3. First name match
-  const firstName = snParts[0]
-  if (firstName && firstName.length > 2) {
-    for (const p of players) {
-      const pp = normalize(p.name).split(' ')
-      if (pp[0] === firstName) return p
-    }
-  }
-
-  // 4. Substring containment
-  for (const p of players) {
+  // 2. Substring containment — one full name entirely contains the other
+  //    (handles minor punctuation/suffix differences).
+  const contained = players.filter(p => {
     const pn = normalize(p.name)
-    if (pn.includes(sn) || sn.includes(pn)) return p
-  }
+    return pn.includes(sn) || sn.includes(pn)
+  })
+  if (contained.length === 1) return contained[0]
 
-  // 5. Initial + last name: "A. Smith" → "Adam Smith"
-  if (snParts[0] && snParts[0].length === 1 && snParts.length > 1) {
+  // 3. Initial + last name, e.g. "A. Smith" -> "Adam Smith" — specific enough to trust
+  //    since both the initial and the rest of the name have to line up.
+  if (snParts[0]?.length === 1 && snParts.length > 1) {
     const initial = snParts[0]
     const rest = snParts.slice(1).join(' ')
-    for (const p of players) {
-      const pn = normalize(p.name).split(' ')
-      if (pn[0]?.[0] === initial && pn.slice(1).join(' ').includes(rest)) return p
-    }
+    const initialMatches = players.filter(p => {
+      const pParts = normalize(p.name).split(' ')
+      return pParts[0]?.[0] === initial && pParts.slice(1).join(' ').includes(rest)
+    })
+    if (initialMatches.length === 1) return initialMatches[0]
   }
 
+  // Deliberately NOT matching on last-name-only or first-name-only: shared surnames
+  // (e.g. "Nair", "Varghese") are common enough in this squad that those heuristics
+  // silently attribute stats to the wrong real player. Leave unmatched and let the
+  // reviewer pick manually instead.
   return null
 }
 

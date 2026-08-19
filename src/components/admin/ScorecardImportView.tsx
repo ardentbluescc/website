@@ -8,6 +8,7 @@ interface PlayerOption { id: string; name: string }
 interface BattingRow {
   name: string; runs: number | null; balls: number | null; fours: number | null
   sixes: number | null; strikeRate: number | null; notOut: boolean; howOut?: string | null
+  catches?: number; stumpings?: number; runOuts?: number; fieldingOnly?: boolean
   matchedPlayer: PlayerOption | null; selectedPlayerId: string | null; include: boolean
 }
 
@@ -329,6 +330,7 @@ export default function ScorecardImportView() {
   const [bowling, setBowling] = useState<BowlingRow[]>([])
   const [formatName, setFormatName] = useState('')
   const [doneCount, setDoneCount] = useState(0)
+  const [skippedCount, setSkippedCount] = useState(0)
   const [errorMsg, setErrorMsg] = useState('')
   const [activeTab, setActiveTab] = useState<'batting' | 'bowling'>('batting')
   const [scanStep, setScanStep] = useState(0)
@@ -396,15 +398,16 @@ export default function ScorecardImportView() {
     batting.filter(r => r.include && r.selectedPlayerId).forEach(r => { byPlayer[r.selectedPlayerId!] = { ...byPlayer[r.selectedPlayerId!], batting: r } })
     bowling.filter(r => r.include && r.selectedPlayerId).forEach(r => { byPlayer[r.selectedPlayerId!] = { ...byPlayer[r.selectedPlayerId!], bowling: r } })
     const entries = Object.entries(byPlayer).map(([playerId, d]) => ({ playerId, batting: d.batting, bowling: d.bowling }))
+    const matchId = source === 'nvplay' ? (selectedMatch?.matchId ?? null) : null
     try {
-      const res = await fetch('/api/scorecard-import/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ format: formatName.trim(), entries }) })
+      const res = await fetch('/api/scorecard-import/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ format: formatName.trim(), entries, matchId }) })
       const json = await res.json()
       if (!res.ok) { setErrorMsg(json.error ?? 'Save failed.'); setPhase('error'); return }
-      setDoneCount(json.updated); setPhase('done')
+      setDoneCount(json.updated); setSkippedCount(json.skipped ?? 0); setPhase('done')
     } catch (e: any) { setErrorMsg(e.message); setPhase('error') }
   }
 
-  const reset = () => { setPhase('idle'); setPreview(null); setResult(null); setSelectedMatch(null) }
+  const reset = () => { setPhase('idle'); setPreview(null); setResult(null); setSelectedMatch(null); setSkippedCount(0) }
 
   const includedCount = batting.filter(r => r.include && r.selectedPlayerId).length +
     bowling.filter(r => r.include && r.selectedPlayerId && !batting.find(b => b.selectedPlayerId === r.selectedPlayerId && b.include)).length
@@ -547,7 +550,8 @@ export default function ScorecardImportView() {
             </div>
             <div style={{ display: 'flex', gap: 16, paddingBottom: 2 }}>
               {[
-                { n: batting.filter(r => r.include).length, label: 'Batting' },
+                { n: batting.filter(r => r.include && !r.fieldingOnly).length, label: 'Batting' },
+                { n: batting.filter(r => r.include && r.fieldingOnly).length, label: 'Fielding' },
                 { n: bowling.filter(r => r.include).length, label: 'Bowling' },
                 { n: unmatched, label: 'Unmatched', warn: unmatched > 0 },
               ].map(({ n, label, warn }) => (
@@ -583,7 +587,12 @@ export default function ScorecardImportView() {
 
                     <div style={{ flexShrink: 0, width: 180 }}>
                       <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>{row.name}</div>
-                      <div style={{ marginTop: 4 }}><MatchBadge player={row.matchedPlayer} /></div>
+                      <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        <MatchBadge player={row.matchedPlayer} />
+                        {isBat && b.fieldingOnly && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#c084fc', background: 'rgba(192,132,252,0.1)', border: '1px solid rgba(192,132,252,0.2)', padding: '2px 8px', borderRadius: 999 }}>Fielding only</span>
+                        )}
+                      </div>
                     </div>
 
                     <div style={{ flex: 1, minWidth: 200, maxWidth: 280 }}>
@@ -596,11 +605,21 @@ export default function ScorecardImportView() {
                     <div style={{ display: 'flex', gap: 16, marginLeft: 'auto', flexShrink: 0 }}>
                       {isBat ? (
                         <>
-                          <Stat label="Runs" value={b.runs} />
-                          <Stat label="Balls" value={b.balls} />
-                          <Stat label="4s" value={b.fours} />
-                          <Stat label="6s" value={b.sixes} />
-                          <Stat label="SR" value={b.strikeRate} />
+                          {!b.fieldingOnly && (
+                            <>
+                              <Stat label="Runs" value={b.runs} />
+                              <Stat label="Balls" value={b.balls} />
+                              <Stat label="4s" value={b.fours} />
+                              <Stat label="6s" value={b.sixes} />
+                              <Stat label="SR" value={b.strikeRate} />
+                            </>
+                          )}
+                          {!!b.catches   && <Stat label="Ct" value={b.catches} />}
+                          {!!b.stumpings && <Stat label="St" value={b.stumpings} />}
+                          {!!b.runOuts   && <Stat label="RO" value={b.runOuts} />}
+                          {b.fieldingOnly && !b.catches && !b.stumpings && !b.runOuts && (
+                            <span style={{ fontSize: 10, color: '#475569', alignSelf: 'center' }}>Played — no recorded contribution</span>
+                          )}
                           {b.notOut && <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.1)', padding: '2px 8px', borderRadius: 999, alignSelf: 'center' }}>NOT OUT</span>}
                           {b.howOut && !b.notOut && <span style={{ fontSize: 10, color: '#64748b', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', alignSelf: 'center' }}>{b.howOut}</span>}
                         </>
@@ -658,6 +677,9 @@ export default function ScorecardImportView() {
           <div>
             <h2 style={{ color: '#fff', fontSize: 20, fontWeight: 600, margin: '0 0 8px' }}>Import complete</h2>
             <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>Stats added to <strong style={{ color: '#fff' }}>{doneCount} player{doneCount !== 1 ? 's' : ''}</strong> successfully.</p>
+            {skippedCount > 0 && (
+              <p style={{ color: '#fb923c', fontSize: 12, marginTop: 8 }}>{skippedCount} player{skippedCount !== 1 ? 's' : ''} skipped — this match was already imported.</p>
+            )}
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <Link href="/admin/collections/players" style={{ ...btn, background: 'none', border: '1px solid #1E293B', color: '#94a3b8', textDecoration: 'none' }}>View Players</Link>

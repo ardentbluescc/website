@@ -16,36 +16,34 @@ function matchPlayer(scorecardName: string, players: any[]): any | null {
   const sn = normalize(scorecardName)
   const snParts = sn.split(' ').filter(Boolean)
 
-  for (const p of players) if (normalize(p.name) === sn) return p
+  // 1. Exact full-name match.
+  const exact = players.filter(p => normalize(p.name) === sn)
+  if (exact.length === 1) return exact[0]
 
-  const lastName = snParts[snParts.length - 1]
-  if (lastName && lastName.length > 2) {
-    for (const p of players) {
-      if (normalize(p.name).split(' ').pop() === lastName) return p
-    }
-  }
-
-  const firstName = snParts[0]
-  if (firstName && firstName.length > 2) {
-    for (const p of players) {
-      if (normalize(p.name).split(' ')[0] === firstName) return p
-    }
-  }
-
-  for (const p of players) {
+  // 2. Substring containment — one full name entirely contains the other
+  //    (handles minor punctuation/suffix differences).
+  const contained = players.filter(p => {
     const pn = normalize(p.name)
-    if (pn.includes(sn) || sn.includes(pn)) return p
-  }
+    return pn.includes(sn) || sn.includes(pn)
+  })
+  if (contained.length === 1) return contained[0]
 
+  // 3. Initial + last name, e.g. "A. Smith" -> "Adam Smith" — specific enough to trust
+  //    since both the initial and the rest of the name have to line up.
   if (snParts[0]?.length === 1 && snParts.length > 1) {
     const initial = snParts[0]
     const rest = snParts.slice(1).join(' ')
-    for (const p of players) {
+    const initialMatches = players.filter(p => {
       const pParts = normalize(p.name).split(' ')
-      if (pParts[0]?.[0] === initial && pParts.slice(1).join(' ').includes(rest)) return p
-    }
+      return pParts[0]?.[0] === initial && pParts.slice(1).join(' ').includes(rest)
+    })
+    if (initialMatches.length === 1) return initialMatches[0]
   }
 
+  // Deliberately NOT matching on last-name-only or first-name-only: shared surnames
+  // (e.g. "Nair", "Varghese") are common enough in this squad that those heuristics
+  // silently attribute stats to the wrong real player. Leave unmatched and let the
+  // reviewer pick manually instead.
   return null
 }
 
@@ -78,12 +76,16 @@ export async function GET(req: Request) {
 
     // --- Parse batting ---
     const batting: any[] = []
+    // Players named in the batting order who never got to bat (HasBatted: false) — the
+    // full XI is listed here regardless of whether they batted, so this is also our
+    // source for "played but recorded nothing" players, resolved after fielding below.
+    const dnbNames = new Set<string>()
     for (const inn of ardentBatInnings) {
       for (const b of inn.BattingCard ?? []) {
         if (b.IsSummary) continue
-        if (!b.HasBatted) continue // Did Not Bat
         const name = cleanName(b.PlayerName ?? '')
         if (!name) continue
+        if (!b.HasBatted) { dnbNames.add(name); continue }
         const matched = matchPlayer(name, players)
         batting.push({
           name,
@@ -94,11 +96,86 @@ export async function GET(req: Request) {
           strikeRate: b.StrikeRate ? parseFloat(b.StrikeRate) : null,
           notOut: b.IsDismissed === false,
           howOut: b.HowOut ?? null,
+          catches: 0,
+          stumpings: 0,
+          runOuts: 0,
+          fieldingOnly: false,
           matchedPlayer: matched ? { id: matched.id, name: matched.name } : null,
           selectedPlayerId: matched?.id ?? null,
           include: true,
         })
       }
+    }
+
+    // --- Parse fielding (catches/stumpings/run-outs) from the innings Ardent Blues bowled ---
+    // Dismissals on the opponent's batting card name the Ardent Blues fielder responsible.
+    // A player who only fielded (no batting/bowling card entry) still needs to show up here.
+    const fieldingByName = new Map<string, { catches: number; stumpings: number; runOuts: number }>()
+    for (const inn of ardentBowlInnings) {
+      for (const b of inn.BattingCard ?? []) {
+        const dismissal = b.Dismissal
+        if (!dismissal || !dismissal.Fielders?.length) continue
+        for (const f of dismissal.Fielders) {
+          const fname = cleanName(f.DisplayName ?? '')
+          if (!fname) continue
+          const entry = fieldingByName.get(fname) ?? { catches: 0, stumpings: 0, runOuts: 0 }
+          if (dismissal.Type === 'Caught') entry.catches++
+          else if (dismissal.Type === 'Stumped') entry.stumpings++
+          else if (dismissal.Type === 'Run Out') entry.runOuts++
+          fieldingByName.set(fname, entry)
+        }
+      }
+    }
+    for (const [fname, stats] of fieldingByName) {
+      const existingRow = batting.find(r => r.name === fname)
+      if (existingRow) {
+        existingRow.catches = stats.catches
+        existingRow.stumpings = stats.stumpings
+        existingRow.runOuts = stats.runOuts
+      } else {
+        const matched = matchPlayer(fname, players)
+        batting.push({
+          name: fname,
+          runs: null,
+          balls: null,
+          fours: null,
+          sixes: null,
+          strikeRate: null,
+          notOut: false,
+          howOut: null,
+          catches: stats.catches,
+          stumpings: stats.stumpings,
+          runOuts: stats.runOuts,
+          fieldingOnly: true,
+          matchedPlayer: matched ? { id: matched.id, name: matched.name } : null,
+          selectedPlayerId: matched?.id ?? null,
+          include: true,
+        })
+      }
+    }
+
+    // --- Remaining DNB players: no bat, no catch/stumping/run-out on record — but they
+    // were still named in the XI for this match, so they still count as having played it.
+    for (const name of dnbNames) {
+      if (batting.find(r => r.name === name)) continue
+      const matched = matchPlayer(name, players)
+      batting.push({
+        name,
+        runs: null,
+        balls: null,
+        fours: null,
+        sixes: null,
+        strikeRate: null,
+        notOut: false,
+        howOut: null,
+        catches: 0,
+        stumpings: 0,
+        runOuts: 0,
+        fieldingOnly: true,
+        matchedPlayer: matched ? { id: matched.id, name: matched.name } : null,
+        selectedPlayerId: matched?.id ?? null,
+        include: true,
+      })
     }
 
     // --- Parse bowling ---

@@ -24,15 +24,24 @@ function betterBB(a: string, b: string): string {
 // existing = current row for this format (null → first time)
 // newMatch = the single-match batting data sent from the UI
 
-function mergeBatting(existing: any | null, nm: any, format: string) {
-  const newRuns  = nm.runs  ?? 0
-  const newBalls = nm.balls ?? 0
-  const newFours = nm.fours ?? 0
-  const newSixes = nm.sixes ?? 0
-  const newNO    = nm.notOut ? 1 : 0
-  // Player counts as having batted whenever they appear in the batting card
-  // (even for a duck they faced balls; for a retired/DNB we still record 0)
-  const didBat = true
+function mergeBatting(existing: any | null, nm: any, format: string, matchId: string | null) {
+  // Player counts as having batted whenever they actually appear in the batting card
+  // (even for a duck they faced balls). A pure fielder (catch/stumping/run-out only,
+  // no batting/bowling card entry) is flagged fieldingOnly — they still count toward
+  // matches played, but must not touch innings/runs/balls/average.
+  const didBat   = !nm.fieldingOnly
+  const newRuns  = didBat ? (nm.runs  ?? 0) : 0
+  const newBalls = didBat ? (nm.balls ?? 0) : 0
+  const newFours = didBat ? (nm.fours ?? 0) : 0
+  const newSixes = didBat ? (nm.sixes ?? 0) : 0
+  const newNO    = didBat && nm.notOut ? 1 : 0
+  const newCatches   = nm.catches   ?? 0
+  const newStumpings = nm.stumpings ?? 0
+  const newRunOuts   = nm.runOuts   ?? 0
+
+  const importedMatchIds: string[] = existing?.importedMatchIds ?? []
+  if (matchId && importedMatchIds.includes(matchId)) return { ...existing, skipped: true }
+  const nextImportedMatchIds = matchId ? [...importedMatchIds, matchId] : importedMatchIds
 
   if (!existing) {
     const dismissals = didBat ? (1 - newNO) : 0
@@ -43,15 +52,17 @@ function mergeBatting(existing: any | null, nm: any, format: string) {
       notOut:     newNO,
       runs:       newRuns,
       balls:      newBalls,
-      highScore:  newNO ? `${newRuns}*` : `${newRuns}`,
+      highScore:  didBat ? (newNO ? `${newRuns}*` : `${newRuns}`) : '-',
       average:    dismissals > 0 ? newRuns : null,
       strikeRate: newBalls > 0 ? parseFloat(((newRuns / newBalls) * 100).toFixed(2)) : null,
-      hundreds:   newRuns >= 100 ? 1 : 0,
-      fifties:    newRuns >= 50 && newRuns < 100 ? 1 : 0,
+      hundreds:   didBat && newRuns >= 100 ? 1 : 0,
+      fifties:    didBat && newRuns >= 50 && newRuns < 100 ? 1 : 0,
       fours:      newFours,
       sixes:      newSixes,
-      catches:    0,
-      stumpings:  0,
+      catches:    newCatches,
+      stumpings:  newStumpings,
+      runOuts:    newRunOuts,
+      importedMatchIds: nextImportedMatchIds,
     }
   }
 
@@ -63,12 +74,17 @@ function mergeBatting(existing: any | null, nm: any, format: string) {
   const totBalls   = (existing.balls   ?? 0) + newBalls  // may be 0 if old rows pre-date this field
   const totFours   = (existing.fours   ?? 0) + newFours
   const totSixes   = (existing.sixes   ?? 0) + newSixes
+  const totCatches   = (existing.catches   ?? 0) + newCatches
+  const totStumpings = (existing.stumpings ?? 0) + newStumpings
+  const totRunOuts   = (existing.runOuts   ?? 0) + newRunOuts
 
-  // ── High score: keep running maximum, preserve * if HS was a not-out ──
+  // ── High score: keep running maximum, preserve * if HS was a not-out (batters only) ──
   const existNum  = parseInt(String(existing.highScore ?? '0').replace('*', '')) || 0
   const existNO   = String(existing.highScore ?? '').endsWith('*')
   let highScore: string
-  if (newRuns > existNum) {
+  if (!didBat) {
+    highScore = existing.highScore ?? '-'
+  } else if (newRuns > existNum) {
     highScore = newNO ? `${newRuns}*` : `${newRuns}`
   } else if (newRuns === existNum && newNO && !existNO) {
     highScore = `${newRuns}*`   // same score but this innings was not out — mark it
@@ -93,24 +109,30 @@ function mergeBatting(existing: any | null, nm: any, format: string) {
     highScore,
     average,
     strikeRate,
-    hundreds:   (existing.hundreds  ?? 0) + (newRuns >= 100 ? 1 : 0),
-    fifties:    (existing.fifties   ?? 0) + (newRuns >= 50 && newRuns < 100 ? 1 : 0),
+    hundreds:   (existing.hundreds  ?? 0) + (didBat && newRuns >= 100 ? 1 : 0),
+    fifties:    (existing.fifties   ?? 0) + (didBat && newRuns >= 50 && newRuns < 100 ? 1 : 0),
     fours:      totFours,
     sixes:      totSixes,
-    catches:    existing.catches   ?? 0,
-    stumpings:  existing.stumpings ?? 0,
+    catches:    totCatches,
+    stumpings:  totStumpings,
+    runOuts:    totRunOuts,
+    importedMatchIds: nextImportedMatchIds,
   }
 }
 
 // ── Bowling merge ─────────────────────────────────────────────────────────────
 
-function mergeBowling(existing: any | null, nm: any, format: string) {
+function mergeBowling(existing: any | null, nm: any, format: string, matchId: string | null) {
   const overs    = nm.overs ?? 0
   const newBalls = parseBalls(overs)
   const newWkts  = nm.wickets  ?? 0
   const newRuns  = nm.runs     ?? 0
   const didBowl  = newBalls > 0
   const newBB    = newWkts > 0 ? `${newWkts}/${newRuns}` : '-'
+
+  const importedMatchIds: string[] = existing?.importedMatchIds ?? []
+  if (matchId && importedMatchIds.includes(matchId)) return { ...existing, skipped: true }
+  const nextImportedMatchIds = matchId ? [...importedMatchIds, matchId] : importedMatchIds
 
   if (!existing) {
     const totOvers = newBalls / 6
@@ -127,6 +149,7 @@ function mergeBowling(existing: any | null, nm: any, format: string) {
       strikeRate:  newWkts > 0 && newBalls > 0 ? parseFloat((newBalls / newWkts).toFixed(2)) : null,
       fourWickets: newWkts === 4 ? 1 : 0,
       fiveWickets: newWkts >= 5 ? 1 : 0,
+      importedMatchIds: nextImportedMatchIds,
     }
   }
 
@@ -150,6 +173,7 @@ function mergeBowling(existing: any | null, nm: any, format: string) {
     strikeRate:  totWkts > 0 && totBalls > 0 ? parseFloat((totBalls / totWkts).toFixed(2)) : null,
     fourWickets: (existing.fourWickets ?? 0) + (newWkts === 4 ? 1 : 0),
     fiveWickets: (existing.fiveWickets ?? 0) + (newWkts >= 5 ? 1 : 0),
+    importedMatchIds: nextImportedMatchIds,
   }
 }
 
@@ -164,54 +188,67 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { format, entries } = body as {
+    const { format, entries, matchId } = body as {
       format: string
       entries: Array<{ playerId: string; batting?: any; bowling?: any }>
+      matchId?: string | null
     }
 
     if (!format?.trim()) {
       return NextResponse.json({ error: 'Format/competition name is required.' }, { status: 400 })
     }
     let updated = 0
+    let skipped = 0
     const errors: string[] = []
 
     for (const entry of entries) {
       try {
         const current = await payload.findByID({ collection: 'players', id: entry.playerId, depth: 0 }) as any
         const updates: Record<string, any> = {}
+        let entrySkipped = false
 
         // ── Batting: find existing row for this format and merge, or create ──
         if (entry.batting) {
           const existingRows: any[] = current.battingStats ?? []
           const idx = existingRows.findIndex((r: any) => r.format === format)
-          const merged = mergeBatting(idx >= 0 ? existingRows[idx] : null, entry.batting, format)
-          const nextRows = [...existingRows]
-          if (idx >= 0) nextRows[idx] = merged
-          else nextRows.push(merged)
-          updates.battingStats = nextRows
+          const merged = mergeBatting(idx >= 0 ? existingRows[idx] : null, entry.batting, format, matchId ?? null)
+          if (merged.skipped) {
+            entrySkipped = true
+          } else {
+            const nextRows = [...existingRows]
+            if (idx >= 0) nextRows[idx] = merged
+            else nextRows.push(merged)
+            updates.battingStats = nextRows
+          }
         }
 
         // ── Bowling: same pattern ──
         if (entry.bowling) {
           const existingRows: any[] = current.bowlingStats ?? []
           const idx = existingRows.findIndex((r: any) => r.format === format)
-          const merged = mergeBowling(idx >= 0 ? existingRows[idx] : null, entry.bowling, format)
-          const nextRows = [...existingRows]
-          if (idx >= 0) nextRows[idx] = merged
-          else nextRows.push(merged)
-          updates.bowlingStats = nextRows
+          const merged = mergeBowling(idx >= 0 ? existingRows[idx] : null, entry.bowling, format, matchId ?? null)
+          if (merged.skipped) {
+            entrySkipped = true
+          } else {
+            const nextRows = [...existingRows]
+            if (idx >= 0) nextRows[idx] = merged
+            else nextRows.push(merged)
+            updates.bowlingStats = nextRows
+          }
         }
 
         if (Object.keys(updates).length > 0) {
           await payload.update({ collection: 'players', id: entry.playerId, data: updates })
           updated++
+        } else if (entrySkipped) {
+          skipped++
         }
       } catch (e: any) {
         errors.push(`Player ${entry.playerId}: ${e.message}`)
       }
     }
 
-    return NextResponse.json({ success: true, updated, errors })
+    return NextResponse.json({ success: true, updated, skipped, errors })
   } catch (err: any) {
     console.error('[scorecard-import/save]', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
