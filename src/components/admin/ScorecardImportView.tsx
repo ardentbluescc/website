@@ -19,7 +19,10 @@ interface BowlingRow {
 }
 
 interface ExtractResult {
-  matchInfo: { competition?: string | null; date?: string | null; dateFormatted?: string | null; teams?: string | null; result?: string | null }
+  matchInfo: {
+    matchId?: string | null; competition?: string | null; date?: string | null; dateFormatted?: string | null
+    teams?: string | null; teamLabel?: string | null; opponent?: string | null; result?: string | null
+  }
   batting: BattingRow[]; bowling: BowlingRow[]; playerOptions: PlayerOption[]
 }
 
@@ -399,8 +402,9 @@ export default function ScorecardImportView() {
     bowling.filter(r => r.include && r.selectedPlayerId).forEach(r => { byPlayer[r.selectedPlayerId!] = { ...byPlayer[r.selectedPlayerId!], bowling: r } })
     const entries = Object.entries(byPlayer).map(([playerId, d]) => ({ playerId, batting: d.batting, bowling: d.bowling }))
     const matchId = source === 'nvplay' ? (selectedMatch?.matchId ?? null) : null
+    const matchInfo = source === 'nvplay' ? (result?.matchInfo ?? null) : null
     try {
-      const res = await fetch('/api/scorecard-import/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ format: formatName.trim(), entries, matchId }) })
+      const res = await fetch('/api/scorecard-import/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ format: formatName.trim(), entries, matchId, matchInfo }) })
       const json = await res.json()
       if (!res.ok) { setErrorMsg(json.error ?? 'Save failed.'); setPhase('error'); return }
       setDoneCount(json.updated); setSkippedCount(json.skipped ?? 0); setPhase('done')

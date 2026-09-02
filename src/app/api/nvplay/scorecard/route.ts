@@ -202,18 +202,25 @@ export async function GET(req: Request) {
       }
     }
 
+    const isTeam1Ardent = (match.Team1Name ?? '').toLowerCase().includes('ardent')
+    const teamLabel = isTeam1Ardent ? match.Team1Name : match.Team2Name
+    const opponent  = isTeam1Ardent ? match.Team2Name : match.Team1Name
+
     return NextResponse.json({
       matchInfo: {
+        matchId,
         competition: match.CompetitionName ?? null,
         date: match.StartDateTime ?? match.StartDateTimeUTC ?? null,  // ISO — used to extract year for season key
         dateFormatted: match.StartDateFormatted ?? null,
         teams: match.MatchShortTitle ?? match.MatchTitle ?? null,
+        teamLabel: teamLabel ?? null,
+        opponent: opponent ?? null,
         matchType: match.MatchType ?? null,
         team1Score: match.Team1Scores ?? null,
         team2Score: match.Team2Scores ?? null,
-        result: match.Team1Scores && match.Team2Scores
+        result: match.Result ?? (match.Team1Scores && match.Team2Scores
           ? `${match.Team1Name}: ${match.Team1Scores}  ·  ${match.Team2Name}: ${match.Team2Scores}`
-          : null,
+          : null),
       },
       batting,
       bowling,

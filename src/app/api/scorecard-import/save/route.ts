@@ -177,6 +177,33 @@ function mergeBowling(existing: any | null, nm: any, format: string, matchId: st
   }
 }
 
+// ── Match log (Recent Form) ───────────────────────────────────────────────────
+// One row per match, independent of the battingStats/bowlingStats aggregates above.
+
+function buildMatchLogEntry(entryBatting: any | undefined, entryBowling: any | undefined, matchInfo: any) {
+  const didBat  = !!entryBatting && !entryBatting.fieldingOnly
+  const didBowl = !!entryBowling
+  return {
+    matchId: matchInfo.matchId,
+    date: matchInfo.date ?? null,
+    competition: matchInfo.competition ?? null,
+    teamLabel: matchInfo.teamLabel ?? null,
+    opponent: matchInfo.opponent ?? null,
+    result: matchInfo.result ?? null,
+    didBat,
+    runs: didBat ? (entryBatting.runs ?? 0) : null,
+    balls: didBat ? (entryBatting.balls ?? 0) : null,
+    notOut: didBat ? !!entryBatting.notOut : false,
+    didBowl,
+    overs: didBowl ? (entryBowling.overs ?? 0) : null,
+    runsConceded: didBowl ? (entryBowling.runs ?? 0) : null,
+    wickets: didBowl ? (entryBowling.wickets ?? 0) : null,
+    catches: entryBatting?.catches ?? 0,
+    stumpings: entryBatting?.stumpings ?? 0,
+    runOuts: entryBatting?.runOuts ?? 0,
+  }
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
@@ -188,10 +215,11 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { format, entries, matchId } = body as {
+    const { format, entries, matchId, matchInfo } = body as {
       format: string
       entries: Array<{ playerId: string; batting?: any; bowling?: any }>
       matchId?: string | null
+      matchInfo?: any | null
     }
 
     if (!format?.trim()) {
@@ -234,6 +262,14 @@ export async function POST(req: Request) {
             if (idx >= 0) nextRows[idx] = merged
             else nextRows.push(merged)
             updates.bowlingStats = nextRows
+          }
+        }
+
+        // ── Match log: one additional row per match, independent of the aggregates above ──
+        if (matchId && matchInfo) {
+          const existingLog: any[] = current.matchLog ?? []
+          if (!existingLog.some((r: any) => r.matchId === matchId)) {
+            updates.matchLog = [...existingLog, buildMatchLogEntry(entry.batting, entry.bowling, matchInfo)]
           }
         }
 

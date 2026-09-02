@@ -10,6 +10,7 @@ const navLinks = [
   { label: 'Fixtures', href: '/fixtures' },
   { label: 'Gallery', href: '/gallery' },
   { label: 'News', href: '/news' },
+  { label: 'Sponsors', href: '/sponsors' },
 ]
 
 export default function Nav() {

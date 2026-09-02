@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getPlayer } from '@/lib/payload'
+import RecentFormSection from '@/components/RecentFormSection'
 
 export const dynamic = 'force-dynamic'
 
@@ -127,6 +128,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
 
   const hasBatting = (player.battingStats?.length ?? 0) > 0
   const hasBowling = (player.bowlingStats?.length ?? 0) > 0
+  const hasRecentForm = (player.matchLog?.length ?? 0) > 0
   const initials = player.name
     .split(' ')
     .map((n: string) => n[0])
@@ -350,8 +352,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           </section>
         )}
 
+        {/* Recent Form */}
+        {hasRecentForm && <RecentFormSection matchLog={player.matchLog} />}
+
         {/* Empty state */}
-        {!hasBatting && !hasBowling && !player.bio && (
+        {!hasBatting && !hasBowling && !player.bio && !hasRecentForm && (
           <div className="flex flex-col items-center justify-center h-48 rounded-2xl border border-ardent-border bg-ardent-card">
             <p className="text-gray-500 text-sm">No stats added yet.</p>
             <p className="text-gray-600 text-xs mt-1">Add batting/bowling stats in the admin panel.</p>

@@ -66,6 +66,15 @@ export const Players: CollectionConfig = {
     { name: 'bowlingStyle', type: 'text', admin: { description: 'e.g. Right-arm fast, Left-arm spin' } },
     { name: 'bio', type: 'textarea' },
     { name: 'isCaptain', type: 'checkbox', defaultValue: false },
+    {
+      name: 'recentFormFetch',
+      type: 'ui',
+      label: 'Recent Form',
+      admin: {
+        position: 'sidebar',
+        components: { Field: '@/components/admin/RecentFormFetchButton' },
+      },
+    },
 
     // Batting & Fielding stats per league/format
     {
@@ -120,6 +129,34 @@ export const Players: CollectionConfig = {
           name: 'importedMatchIds', type: 'text', hasMany: true,
           admin: { hidden: true, description: 'NV Play match IDs already merged into this row — prevents double-import' },
         },
+      ],
+    },
+
+    // Per-match log — powers the "Recent Form" list on the player page.
+    // Purely additive: independent of battingStats/bowlingStats, one row per match played.
+    {
+      name: 'matchLog',
+      type: 'array',
+      label: 'Match Log (Recent Form)',
+      admin: { description: 'One row per match — auto-filled by the NV Play importer, powers the Recent Form list on the player page' },
+      fields: [
+        { name: 'matchId', type: 'text', required: true, admin: { description: 'NV Play match ID — used to dedupe and link out to the full scorecard' } },
+        { name: 'date', type: 'date' },
+        { name: 'competition', type: 'text' },
+        { name: 'teamLabel', type: 'text', admin: { description: 'Ardent Blues side, e.g. "Ardent Blues 3rd XI"' } },
+        { name: 'opponent', type: 'text' },
+        { name: 'result', type: 'text' },
+        { name: 'didBat', type: 'checkbox', defaultValue: false },
+        { name: 'runs', type: 'number' },
+        { name: 'balls', type: 'number' },
+        { name: 'notOut', type: 'checkbox', defaultValue: false },
+        { name: 'didBowl', type: 'checkbox', defaultValue: false },
+        { name: 'overs', type: 'number' },
+        { name: 'runsConceded', type: 'number' },
+        { name: 'wickets', type: 'number' },
+        { name: 'catches', type: 'number' },
+        { name: 'stumpings', type: 'number' },
+        { name: 'runOuts', type: 'number' },
       ],
     },
   ],
