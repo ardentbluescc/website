@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
 
-export const maxDuration = 300
+export const maxDuration = 800
 
 function buildMatchLogEntry(entryBatting: any | undefined, entryBowling: any | undefined, matchInfo: any) {
   const didBat  = !!entryBatting && !entryBatting.fieldingOnly
@@ -51,60 +51,79 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T)
   return results
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+// Bulk version of /api/players/[id]/recent-form — fetches every NV Play match ONCE and
+// applies it to every matched player, instead of re-fetching the same match once per player.
+export async function POST(req: Request) {
   try {
     const payload = await getPayloadClient()
     const { user } = await payload.auth({ headers: req.headers })
     if (!user) return NextResponse.json({ error: 'You must be logged in to use this tool.' }, { status: 401 })
 
-    const { id } = await params
-    const player = (await payload.findByID({ collection: 'players', id, depth: 0 }).catch(() => null)) as any
-    if (!player) return NextResponse.json({ error: 'Player not found.' }, { status: 404 })
-
     const origin = new URL(req.url).origin
+    const { docs: players } = await payload.find({ collection: 'players', limit: 500, depth: 0 })
+    const playerById = new Map<string, any>((players as any[]).map((p) => [String(p.id), p]))
+    const existingIdsByPlayer = new Map<string, Set<string>>(
+      (players as any[]).map((p) => [String(p.id), new Set((p.matchLog ?? []).map((m: any) => m.matchId))])
+    )
+    const newRowsByPlayer = new Map<string, any[]>()
+
     const matchesRes = await fetchWithTimeout(`${origin}/api/nvplay/matches`, 30000)
     if (!matchesRes.ok) return NextResponse.json({ error: 'Could not reach NV Play.' }, { status: 502 })
     const matchesJson = await matchesRes.json()
-    // All seasons NV Play makes available (not just the current year) — powers the year tabs on the player page.
-    const allMatches = matchesJson.results ?? []
-
-    let currentLog: any[] = player.matchLog ?? []
-    const existingIds = new Set(currentLog.map((r: any) => r.matchId))
-    const toCheck = allMatches.filter((m: any) => !existingIds.has(m.matchId))
+    const allMatches: any[] = matchesJson.results ?? []
 
     const BATCH_SIZE = 40
-    let totalAdded = 0
+    let checked = 0
     let errors = 0
 
-    // Batched + written incrementally: if this ever gets cut off mid-run (serverless
-    // time limit), only the current batch's progress is lost, not the whole scan.
-    for (let i = 0; i < toCheck.length; i += BATCH_SIZE) {
-      const batch = toCheck.slice(i, i + BATCH_SIZE)
-      const batchRows = (await mapWithConcurrency(batch, 10, async (m: any) => {
+    for (let i = 0; i < allMatches.length; i += BATCH_SIZE) {
+      const batch = allMatches.slice(i, i + BATCH_SIZE)
+
+      await mapWithConcurrency(batch, 10, async (m: any) => {
+        checked++
         try {
           const scRes = await fetchWithTimeout(`${origin}/api/nvplay/scorecard?matchId=${encodeURIComponent(m.matchId)}`, 15000)
-          if (!scRes.ok) return null
+          if (!scRes.ok) return
           const sc = await scRes.json()
-          const bat = (sc.batting ?? []).find((b: any) => String(b.selectedPlayerId) === String(id))
-          const bowl = (sc.bowling ?? []).find((b: any) => String(b.selectedPlayerId) === String(id))
-          if (!bat && !bowl) return null
-          return buildMatchLogEntry(bat, bowl, sc.matchInfo)
+
+          const byPlayerId = new Map<string, { batting?: any; bowling?: any }>()
+          for (const b of sc.batting ?? []) {
+            if (!b.selectedPlayerId) continue
+            byPlayerId.set(String(b.selectedPlayerId), { ...byPlayerId.get(String(b.selectedPlayerId)), batting: b })
+          }
+          for (const bw of sc.bowling ?? []) {
+            if (!bw.selectedPlayerId) continue
+            byPlayerId.set(String(bw.selectedPlayerId), { ...byPlayerId.get(String(bw.selectedPlayerId)), bowling: bw })
+          }
+
+          for (const [playerId, entry] of byPlayerId) {
+            if (!playerById.has(playerId)) continue
+            const existingIds = existingIdsByPlayer.get(playerId)!
+            if (existingIds.has(m.matchId)) continue
+            const row = buildMatchLogEntry(entry.batting, entry.bowling, sc.matchInfo)
+            if (!newRowsByPlayer.has(playerId)) newRowsByPlayer.set(playerId, [])
+            newRowsByPlayer.get(playerId)!.push(row)
+            existingIds.add(m.matchId)
+          }
         } catch {
           errors++
-          return null
         }
-      })).filter(Boolean)
-
-      if (batchRows.length > 0) {
-        currentLog = [...currentLog, ...batchRows]
-        await payload.update({ collection: 'players', id, data: { matchLog: currentLog } })
-        totalAdded += batchRows.length
-      }
+      })
     }
 
-    return NextResponse.json({ checked: toCheck.length, added: totalAdded, errors })
+    let playersUpdated = 0
+    let totalRowsAdded = 0
+    for (const [playerId, rows] of newRowsByPlayer) {
+      const player = playerById.get(playerId)
+      const nextLog = [...(player.matchLog ?? []), ...rows]
+      await payload.update({ collection: 'players', id: playerId, data: { matchLog: nextLog } })
+      playersUpdated++
+      totalRowsAdded += rows.length
+    }
+
+    return NextResponse.json({ totalMatches: allMatches.length, checked, errors, playersUpdated, totalRowsAdded })
   } catch (err: any) {
-    console.error('[players/recent-form]', err)
+    console.error('[players/recent-form-all]', err)
     return NextResponse.json({ error: err.message ?? 'Unexpected error.' }, { status: 500 })
   }
 }

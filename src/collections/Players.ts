@@ -8,6 +8,9 @@ export const Players: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'group', 'jerseyNumber', 'role', 'battingStyle'],
+    components: {
+      beforeListTable: ['@/components/admin/RecentFormFetchAllButton'],
+    },
   },
   fields: [
     { name: 'name', type: 'text', required: true },
@@ -69,7 +72,7 @@ export const Players: CollectionConfig = {
     {
       name: 'recentFormFetch',
       type: 'ui',
-      label: 'Recent Form',
+      label: 'Match History',
       admin: {
         position: 'sidebar',
         components: { Field: '@/components/admin/RecentFormFetchButton' },
@@ -152,6 +155,7 @@ export const Players: CollectionConfig = {
         { name: 'notOut', type: 'checkbox', defaultValue: false },
         { name: 'didBowl', type: 'checkbox', defaultValue: false },
         { name: 'overs', type: 'number' },
+        { name: 'maidens', type: 'number' },
         { name: 'runsConceded', type: 'number' },
         { name: 'wickets', type: 'number' },
         { name: 'catches', type: 'number' },

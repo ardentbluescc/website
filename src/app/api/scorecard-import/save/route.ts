@@ -196,6 +196,7 @@ function buildMatchLogEntry(entryBatting: any | undefined, entryBowling: any | u
     notOut: didBat ? !!entryBatting.notOut : false,
     didBowl,
     overs: didBowl ? (entryBowling.overs ?? 0) : null,
+    maidens: didBowl ? (entryBowling.maidens ?? 0) : null,
     runsConceded: didBowl ? (entryBowling.runs ?? 0) : null,
     wickets: didBowl ? (entryBowling.wickets ?? 0) : null,
     catches: entryBatting?.catches ?? 0,

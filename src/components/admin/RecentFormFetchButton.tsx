@@ -34,7 +34,7 @@ export default function RecentFormFetchButton() {
 
   return (
     <div style={{ marginBottom: 20 }}>
-      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Recent Form</label>
+      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Match History</label>
       <button
         type="button"
         onClick={handleClick}
@@ -51,11 +51,13 @@ export default function RecentFormFetchButton() {
           cursor: !id || status === 'loading' ? 'not-allowed' : 'pointer',
         }}
       >
-        {status === 'loading' ? 'Scanning NV Play…' : 'Fetch Recent Form from NV Play'}
+        {status === 'loading' ? 'Scanning NV Play…' : 'Fetch Match History from NV Play'}
       </button>
-      {!id && (
-        <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>Save the player first, then come back to fetch their match history.</p>
-      )}
+      <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>
+        {!id
+          ? 'Save the player first, then come back to fetch their match history.'
+          : 'Updates both Recent Form and By Competition on the player page — they share the same match history.'}
+      </p>
       {message && (
         <p style={{ fontSize: 12, marginTop: 8, color: status === 'error' ? '#dc2626' : '#16a34a' }}>{message}</p>
       )}

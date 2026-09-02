@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getPlayer } from '@/lib/payload'
 import RecentFormSection from '@/components/RecentFormSection'
+import CompetitionBreakdown from '@/components/CompetitionBreakdown'
 
 export const dynamic = 'force-dynamic'
 
@@ -351,6 +352,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
             </div>
           </section>
         )}
+
+        {/* By Competition */}
+        {hasRecentForm && <CompetitionBreakdown matchLog={player.matchLog} />}
 
         {/* Recent Form */}
         {hasRecentForm && <RecentFormSection matchLog={player.matchLog} />}

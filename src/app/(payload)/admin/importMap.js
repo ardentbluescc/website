@@ -22,6 +22,7 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_c025766303e022637bf71aecceb9948a } from '@/components/admin/RecentFormFetchButton'
+import { default as default_e0fec392b8f44ed92c3a606a00e4fde3 } from '@/components/admin/RecentFormFetchAllButton'
 import { default as default_2653f0cf9bbba27d3da7b442e82beaa0 } from '@/components/admin/ScorecardNavLink'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
 import { default as default_da566523598d2c56bd8737be60e4c885 } from '@/components/admin/ScorecardImportView'
@@ -53,6 +54,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/components/admin/RecentFormFetchButton#default": default_c025766303e022637bf71aecceb9948a,
+  "@/components/admin/RecentFormFetchAllButton#default": default_e0fec392b8f44ed92c3a606a00e4fde3,
   "@/components/admin/ScorecardNavLink#default": default_2653f0cf9bbba27d3da7b442e82beaa0,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
   "@/components/admin/ScorecardImportView#default": default_da566523598d2c56bd8737be60e4c885,
