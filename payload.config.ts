@@ -5,6 +5,7 @@ import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { resendAdapter } from '@payloadcms/email-resend'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import sharp from 'sharp'
 
 import { Users } from './src/collections/Users'
 import { Members } from './src/collections/Members'
@@ -40,6 +41,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Members, News, Players, Teams, Gallery, Fixtures, Sponsors, ContactSubmissions],
+  sharp,
   plugins: [
     vercelBlobStorage({
       enabled: !!process.env.BLOB_READ_WRITE_TOKEN,

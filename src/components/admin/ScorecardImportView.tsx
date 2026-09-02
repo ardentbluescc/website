@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface PlayerOption { id: string; name: string }
 
@@ -482,7 +483,7 @@ export default function ScorecardImportView() {
         <div style={{ display: 'grid', gridTemplateColumns: source === 'image' && preview ? '1fr 1fr' : '1fr', gap: 24 }}>
           {source === 'image' && preview && (
             <div style={{ ...card, aspectRatio: '4/3', overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src={preview} alt="Scorecard" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 8 }} />
+              <Image src={preview} alt="Scorecard" fill unoptimized style={{ objectFit: 'contain', padding: 8 }} />
             </div>
           )}
           {source === 'nvplay' && selectedMatch && (

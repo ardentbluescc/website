@@ -4,6 +4,7 @@ import path from 'path'
 const webpack = require('webpack')
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: path.resolve(__dirname),
   images: {
     remotePatterns: [
       { protocol: 'http', hostname: 'localhost' },
