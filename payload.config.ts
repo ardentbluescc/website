@@ -78,11 +78,13 @@ export default buildConfig({
     'https://abcca.vercel.app',
     'https://abcca-xpnt.vercel.app',
     ...(process.env.NEXT_PUBLIC_SERVER_URL ? [process.env.NEXT_PUBLIC_SERVER_URL] : []),
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
   ],
   csrf: [
     'http://localhost:3000',
     'https://abcca.vercel.app',
     'https://abcca-xpnt.vercel.app',
     ...(process.env.NEXT_PUBLIC_SERVER_URL ? [process.env.NEXT_PUBLIC_SERVER_URL] : []),
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
   ],
 })
