@@ -1,11 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import type { NewsCardData } from '@/lib/ncu-news'
 
 const categoryLabel: Record<string, string> = {
   'club-news': 'News',
   'match-report': 'Match Report',
   announcement: 'Announcement',
   recruitment: 'Recruitment',
+  'ncu-news': 'NCU News',
 }
 
 function timeAgo(dateStr: string) {
@@ -27,9 +29,9 @@ function CategoryBadge({ category }: { category?: string }) {
   )
 }
 
-export default function LatestNews({ articles }: { articles: any[] }) {
+export default function LatestNews({ articles }: { articles: NewsCardData[] }) {
   const [featured, ...rest] = articles
-  const sidebar = rest.slice(0, 2)
+  const sidebar = rest.slice(0, 3)
 
   return (
     <section className="py-20 bg-navy-900">
@@ -61,9 +63,9 @@ export default function LatestNews({ articles }: { articles: any[] }) {
             >
               {/* Background image / gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-[#0d2a5c] via-[#1a3f80] to-[#0f2248]">
-                {featured.coverImage?.url && (
+                {featured.coverImageUrl && (
                   <Image
-                    src={featured.coverImage.url}
+                    src={featured.coverImageUrl}
                     alt={featured.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
@@ -71,7 +73,7 @@ export default function LatestNews({ articles }: { articles: any[] }) {
                   />
                 )}
                 {/* Cricket pattern overlay when no image */}
-                {!featured.coverImage?.url && (
+                {!featured.coverImageUrl && (
                   <div className="absolute inset-0 flex items-center justify-center opacity-10">
                     <span className="text-[12rem] select-none">🏏</span>
                   </div>
@@ -94,26 +96,26 @@ export default function LatestNews({ articles }: { articles: any[] }) {
             </Link>
           )}
 
-          {/* Sidebar — 2 stacked cards */}
+          {/* Sidebar — up to 3 stacked cards */}
           <div className="flex flex-col gap-4">
             {sidebar.map(article => (
               <Link
-                key={article.id}
+                key={`${article.source}-${article.id}`}
                 href={`/news/${article.slug}`}
-                className="relative rounded-2xl overflow-hidden group block flex-1 min-h-[196px]"
+                className="relative rounded-2xl overflow-hidden group block flex-1 min-h-[128px]"
               >
                 {/* Background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#0d2a5c] to-[#122240]">
-                  {article.coverImage?.url && (
+                  {article.coverImageUrl && (
                     <Image
-                      src={article.coverImage.url}
+                      src={article.coverImageUrl}
                       alt={article.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-700"
                       sizes="(max-width: 1024px) 100vw, 33vw"
                     />
                   )}
-                  {!article.coverImage?.url && (
+                  {!article.coverImageUrl && (
                     <div className="absolute inset-0 flex items-center justify-center opacity-10">
                       <span className="text-[5rem] select-none">🏏</span>
                     </div>
@@ -124,9 +126,9 @@ export default function LatestNews({ articles }: { articles: any[] }) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
 
                 {/* Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-5">
+                <div className="absolute bottom-0 left-0 right-0 p-4">
                   <CategoryBadge category={article.category} />
-                  <h3 className="text-white font-bold text-base leading-snug group-hover:text-ardent-bright transition-colors line-clamp-2">
+                  <h3 className="text-white font-bold text-sm leading-snug group-hover:text-ardent-bright transition-colors line-clamp-2">
                     {article.title}
                   </h3>
                   {article.publishedAt && (
@@ -136,14 +138,14 @@ export default function LatestNews({ articles }: { articles: any[] }) {
               </Link>
             ))}
 
-            {/* If only 1 sidebar item, show a "more news" card */}
-            {sidebar.length < 2 && (
+            {/* Fill any remaining slots (up to 3) with a "more news" card */}
+            {sidebar.length < 3 && (
               <Link
                 href="/news"
-                className="flex-1 min-h-[196px] rounded-2xl border border-ardent-border hover:border-ardent/40 bg-ardent-card flex flex-col items-center justify-center gap-3 transition-all group"
+                className="flex-1 min-h-[128px] rounded-2xl border border-ardent-border hover:border-ardent/40 bg-ardent-card flex flex-col items-center justify-center gap-2 transition-all group"
               >
-                <div className="w-10 h-10 rounded-full border border-ardent/40 flex items-center justify-center group-hover:bg-ardent transition-colors">
-                  <svg className="w-4 h-4 text-ardent-bright group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-9 h-9 rounded-full border border-ardent/40 flex items-center justify-center group-hover:bg-ardent transition-colors">
+                  <svg className="w-3.5 h-3.5 text-ardent-bright group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </div>

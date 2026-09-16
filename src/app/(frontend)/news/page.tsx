@@ -2,12 +2,13 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getNews } from '@/lib/payload'
+import { getNCUNews, type NewsCardData } from '@/lib/ncu-news'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'News | Ardent Blues CC',
-  description: 'Latest news, match reports, and announcements from Ardent Blues Cricket Club.',
+  description: 'Latest news, match reports, and announcements from Ardent Blues Cricket Club and the Northern Cricket Union.',
 }
 
 const categoryColour: Record<string, string> = {
@@ -15,6 +16,7 @@ const categoryColour: Record<string, string> = {
   'match-report': 'bg-green-500/15 text-green-400',
   announcement: 'bg-yellow-500/15 text-yellow-300',
   recruitment: 'bg-purple-500/15 text-purple-300',
+  'ncu-news': 'bg-blue-500/15 text-blue-300',
 }
 
 const categoryLabel: Record<string, string> = {
@@ -25,14 +27,32 @@ const categoryLabel: Record<string, string> = {
 }
 
 export default async function NewsPage() {
-  const { docs: articles } = await getNews(12)
+  const [{ docs: clubDocs }, ncuArticles] = await Promise.all([getNews(12), getNCUNews(6)])
+
+  const clubArticles: NewsCardData[] = clubDocs.map((article: any) => ({
+    id: String(article.id),
+    slug: article.slug,
+    title: article.title,
+    excerpt: article.excerpt,
+    coverImageUrl: article.coverImage?.url,
+    category: article.category,
+    categoryLabel: categoryLabel[article.category] ?? article.category,
+    publishedAt: article.publishedAt,
+    source: 'club',
+  }))
+
+  const articles = [...clubArticles, ...ncuArticles].sort((a, b) => {
+    const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0
+    const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0
+    return dateB - dateA
+  })
 
   return (
     <div className="min-h-screen bg-navy-900 pt-28 pb-20">
       <div className="max-w-5xl mx-auto px-6">
         <h1 className="font-display text-4xl md:text-5xl font-normal text-white leading-none tracking-tight mb-4">News &amp; Announcements</h1>
         <p className="text-gray-400 text-lg mb-12">
-          Latest updates, match reports, and club announcements.
+          Latest updates, match reports, and club announcements — plus news from the Northern Cricket Union.
         </p>
 
         {articles.length === 0 ? (
@@ -47,14 +67,14 @@ export default async function NewsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {articles.map((article) => (
               <article
-                key={article.id}
+                key={`${article.source}-${article.id}`}
                 className="bg-ardent-card border border-ardent-border rounded-2xl overflow-hidden hover:border-ardent/40 transition-all group"
               >
                 <div className="relative h-44 bg-gradient-to-br from-[#0d2b5e] to-[#1a4080] overflow-hidden">
-                  {(article as any).coverImage?.url ? (
+                  {article.coverImageUrl ? (
                     <Image
-                      src={(article as any).coverImage.url}
-                      alt={(article as any).coverImage.alt || article.title}
+                      src={article.coverImageUrl}
+                      alt={article.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-700"
                       unoptimized
@@ -73,7 +93,7 @@ export default async function NewsPage() {
                         categoryColour[article.category] ?? 'bg-ardent-border text-gray-400'
                       }`}
                     >
-                      {categoryLabel[article.category] ?? article.category}
+                      {article.categoryLabel ?? article.category}
                     </span>
                   )}
                   <h2 className="text-white font-bold text-lg leading-snug mb-2 group-hover:text-ardent-bright transition-colors">
