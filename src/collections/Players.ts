@@ -9,7 +9,7 @@ export const Players: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'group', 'jerseyNumber', 'role', 'battingStyle'],
     components: {
-      beforeListTable: ['@/components/admin/RecentFormFetchAllButton'],
+      beforeListTable: ['@/components/admin/RecentFormFetchAllButton', '@/components/admin/ExportPlayersButton'],
     },
   },
   fields: [
@@ -76,6 +76,15 @@ export const Players: CollectionConfig = {
       admin: {
         position: 'sidebar',
         components: { Field: '@/components/admin/RecentFormFetchButton' },
+      },
+    },
+    {
+      name: 'exportPlayer',
+      type: 'ui',
+      label: 'Export',
+      admin: {
+        position: 'sidebar',
+        components: { Field: '@/components/admin/ExportPlayerButton' },
       },
     },
 
