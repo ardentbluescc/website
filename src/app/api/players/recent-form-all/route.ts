@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
 
-export const maxDuration = 800
+export const maxDuration = 300
 
 function buildMatchLogEntry(entryBatting: any | undefined, entryBowling: any | undefined, matchInfo: any) {
   const didBat  = !!entryBatting && !entryBatting.fieldingOnly
