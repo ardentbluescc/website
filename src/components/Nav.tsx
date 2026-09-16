@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { JOIN_MAILTO } from '@/lib/contact'
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -49,12 +50,12 @@ export default function Nav() {
 
         {/* CTA + hamburger */}
         <div className="flex items-center gap-3">
-<Link
-            href="/membership"
+          <a
+            href={JOIN_MAILTO}
             className="hidden sm:inline-flex items-center gap-2 bg-ardent hover:bg-ardent-light text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:scale-105 shadow-lg shadow-ardent/20"
           >
             Join Now
-          </Link>
+          </a>
           <button
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
@@ -77,7 +78,7 @@ export default function Nav() {
       {open && (
         <div className="md:hidden border-t border-ardent-border/30 bg-navy-900/95 backdrop-blur-lg">
           <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4">
-            {[...navLinks, { label: 'Membership', href: '/membership' }].map(({ label, href }) => (
+            {navLinks.map(({ label, href }) => (
               <Link
                 key={href}
                 href={href}
@@ -87,6 +88,13 @@ export default function Nav() {
                 {label}
               </Link>
             ))}
+            <a
+              href={JOIN_MAILTO}
+              className="text-gray-300 hover:text-white text-sm font-medium py-1"
+              onClick={() => setOpen(false)}
+            >
+              Join Now
+            </a>
           </div>
         </div>
       )}

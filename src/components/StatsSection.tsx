@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { JOIN_MAILTO } from '@/lib/contact'
 
 export default function StatsSection() {
   return (
@@ -11,15 +11,15 @@ export default function StatsSection() {
               Your club.<br />
               <span className="text-ardent">Belfast.</span>
             </h2>
-            <Link
-              href="/membership"
+            <a
+              href={JOIN_MAILTO}
               className="inline-flex items-center gap-2.5 bg-ardent hover:bg-ardent-light text-white font-semibold px-6 py-3 rounded-full transition-all hover:scale-105 text-sm shadow-lg shadow-ardent/20"
             >
               Join Now
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
-            </Link>
+            </a>
           </div>
 
           {/* Right: stat cards */}

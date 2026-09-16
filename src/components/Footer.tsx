@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { JOIN_MAILTO } from '@/lib/contact'
 
 const links = {
   Club: [
@@ -7,14 +8,8 @@ const links = {
     { label: 'News', href: '/news' },
     { label: 'Gallery', href: '/gallery' },
   ],
-  Teams: [
-    { label: 'Senior Men', href: '/teams' },
-    { label: 'Junior Teams', href: '/teams' },
-    { label: 'Fixtures', href: '/fixtures' },
-    { label: 'Results', href: '/fixtures' },
-  ],
   Members: [
-    { label: 'Join Now', href: '/membership' },
+    { label: 'Join Now', href: JOIN_MAILTO },
     { label: 'Sponsors', href: '/sponsors' },
     { label: 'Contact', href: '/contact' },
   ],
@@ -29,7 +24,7 @@ export default function Footer() {
   return (
     <footer className="bg-navy-900 border-t border-ardent-border">
       <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand col */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2.5 mb-4">
@@ -69,16 +64,27 @@ export default function Footer() {
             <div key={cat}>
               <h4 className="text-white font-semibold text-sm mb-4">{cat}</h4>
               <ul className="space-y-2.5">
-                {items.map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
+                {items.map((item) =>
+                  item.href.startsWith('mailto:') ? (
+                    <li key={item.label}>
+                      <a
+                        href={item.href}
+                        className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  ) : (
+                    <li key={item.label}>
+                      <Link
+                        href={item.href}
+                        className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           ))}

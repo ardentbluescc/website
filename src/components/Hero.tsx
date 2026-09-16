@@ -1,14 +1,6 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import ScrambleHeading from './ScrambleHeading'
-
-const pills = [
-  'Player Development',
-  'Skills Courses',
-  'Match Day Experience',
-  'Private Coaching',
-  'Youth Academy',
-]
+import { JOIN_MAILTO } from '@/lib/contact'
 
 export default function Hero() {
   return (
@@ -55,16 +47,16 @@ export default function Hero() {
         </p>
 
         {/* CTA row */}
-        <div className="flex flex-wrap items-center gap-4 mb-16">
-          <Link
-            href="/membership"
+        <div className="flex flex-wrap items-center gap-4">
+          <a
+            href={JOIN_MAILTO}
             className="inline-flex items-center gap-2.5 bg-ardent hover:bg-ardent-light text-white font-semibold px-7 py-3.5 rounded-full transition-all hover:scale-105 shadow-xl shadow-ardent/25 text-sm"
           >
             Join Our Club Today
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-          </Link>
+          </a>
           <a
             href="#about"
             className="w-12 h-12 rounded-full border border-white/20 hover:border-ardent/60 text-white/60 hover:text-white flex items-center justify-center transition-all"
@@ -73,18 +65,6 @@ export default function Hero() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </a>
-        </div>
-
-        {/* Category pills */}
-        <div className="flex flex-wrap gap-2">
-          {pills.map((label) => (
-            <span
-              key={label}
-              className="text-xs text-gray-500 border border-white/10 hover:border-ardent/40 hover:text-gray-300 rounded-full px-4 py-1.5 cursor-pointer transition-colors"
-            >
-              {label}
-            </span>
-          ))}
         </div>
       </div>
 

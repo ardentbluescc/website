@@ -9,7 +9,6 @@ const staticRoutes = [
   '/teams',
   '/fixtures',
   '/gallery',
-  '/membership',
   '/contact',
   '/code-of-conduct',
   '/privacy',
