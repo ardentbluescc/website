@@ -51,6 +51,12 @@ function GlovesIcon() {
 }
 
 
+interface GroupRef {
+  id: string | number
+  name: string
+  order?: number | null
+}
+
 interface Player {
   id: string | number
   name: string
@@ -60,34 +66,36 @@ interface Player {
   age?: number | null
   jerseyNumber?: number | null
   isCaptain?: boolean
-  group?: string | null
+  groupTier?: GroupRef | string | null
   photo?: { url?: string; alt?: string } | null
 }
 
-const GROUPS = ['group-1', 'group-2', 'group-3', 'group-4', 'group-5']
-const GROUP_LABELS: Record<string, string> = {
-  'group-1': 'Group 1',
-  'group-2': 'Group 2',
-  'group-3': 'Group 3',
-  'group-4': 'Group 4',
-  'group-5': 'Group 5',
+function getGroup(player: Player): GroupRef | null {
+  return player.groupTier && typeof player.groupTier === 'object' ? player.groupTier : null
 }
 
 export default function TeamsTabs({ players }: { players: Player[] }) {
-  const activeGroups = GROUPS.filter(g => players.some(p => p.group === g))
-  const hasUngrouped = players.some(p => !p.group)
+  const groupMap = new Map<string, GroupRef>()
+  for (const p of players) {
+    const g = getGroup(p)
+    if (g) groupMap.set(String(g.id), g)
+  }
+  const activeGroups = Array.from(groupMap.values()).sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name)
+  )
+  const hasUngrouped = players.some(p => !getGroup(p))
 
   const tabs: { key: string; label: string }[] = [
     ...(hasUngrouped || activeGroups.length === 0
       ? [{ key: 'all', label: 'All Players' }]
       : []),
-    ...activeGroups.map(g => ({ key: g, label: GROUP_LABELS[g] })),
+    ...activeGroups.map(g => ({ key: String(g.id), label: g.name })),
   ]
 
   const [active, setActive] = useState(tabs[0]?.key ?? 'all')
 
   const visible =
-    active === 'all' ? players : players.filter(p => p.group === active)
+    active === 'all' ? players : players.filter(p => String(getGroup(p)?.id) === active)
 
   return (
     <div>

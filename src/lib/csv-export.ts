@@ -24,8 +24,9 @@ export function buildPlayersCSV(players: any[]): string {
   out += row(BIO_HEADERS)
   for (const p of players) {
     out += row([
-      p.name, p.slug, p.jerseyNumber, p.group, p.role, p.battingStyle, p.bowlingStyle,
-      p.age, p.dob, p.isCaptain, typeof p.team === 'object' ? p.team?.name : p.team,
+      p.name, p.slug, p.jerseyNumber, typeof p.groupTier === 'object' ? p.groupTier?.name : p.groupTier,
+      p.role, p.battingStyle, p.bowlingStyle, p.age, p.dob, p.isCaptain,
+      typeof p.team === 'object' ? p.team?.name : p.team,
     ])
   }
 

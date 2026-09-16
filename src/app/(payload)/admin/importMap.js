@@ -25,6 +25,7 @@ import { default as default_c025766303e022637bf71aecceb9948a } from '@/component
 import { default as default_d2b3fc44df15f191d489def6618b6a32 } from '@/components/admin/ExportPlayerButton'
 import { default as default_e0fec392b8f44ed92c3a606a00e4fde3 } from '@/components/admin/RecentFormFetchAllButton'
 import { default as default_e72dc60d2bd25ee3ead62c481991e3fa } from '@/components/admin/ExportPlayersButton'
+import { default as default_d349e516bb3b675bdcc54111606c0544 } from '@/components/admin/MigrateGroupsButton'
 import { default as default_2653f0cf9bbba27d3da7b442e82beaa0 } from '@/components/admin/ScorecardNavLink'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
 import { default as default_da566523598d2c56bd8737be60e4c885 } from '@/components/admin/ScorecardImportView'
@@ -59,6 +60,7 @@ export const importMap = {
   "@/components/admin/ExportPlayerButton#default": default_d2b3fc44df15f191d489def6618b6a32,
   "@/components/admin/RecentFormFetchAllButton#default": default_e0fec392b8f44ed92c3a606a00e4fde3,
   "@/components/admin/ExportPlayersButton#default": default_e72dc60d2bd25ee3ead62c481991e3fa,
+  "@/components/admin/MigrateGroupsButton#default": default_d349e516bb3b675bdcc54111606c0544,
   "@/components/admin/ScorecardNavLink#default": default_2653f0cf9bbba27d3da7b442e82beaa0,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
   "@/components/admin/ScorecardImportView#default": default_da566523598d2c56bd8737be60e4c885,

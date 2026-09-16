@@ -215,9 +215,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                     {roleLabel[player.role] ?? player.role}
                   </span>
                 )}
-                {player.group && (
+                {player.groupTier?.name && (
                   <span className="text-xs font-semibold text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
-                    {player.group.replace('group-', 'Group ')}
+                    {player.groupTier.name}
                   </span>
                 )}
                 {player.jerseyNumber != null && (

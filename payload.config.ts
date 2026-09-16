@@ -11,6 +11,7 @@ import { Users } from './src/collections/Users'
 import { Members } from './src/collections/Members'
 import { News } from './src/collections/News'
 import { Players } from './src/collections/Players'
+import { Groups } from './src/collections/Groups'
 import { Teams } from './src/collections/Teams'
 import { Gallery } from './src/collections/Gallery'
 import { Fixtures } from './src/collections/Fixtures'
@@ -40,7 +41,7 @@ export default buildConfig({
       afterNavLinks: ['@/components/admin/ScorecardNavLink'],
     },
   },
-  collections: [Users, Members, News, Players, Teams, Gallery, Fixtures, Sponsors, ContactSubmissions],
+  collections: [Users, Members, News, Players, Groups, Teams, Gallery, Fixtures, Sponsors, ContactSubmissions],
   sharp,
   plugins: [
     vercelBlobStorage({

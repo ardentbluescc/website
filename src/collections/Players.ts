@@ -7,9 +7,13 @@ export const Players: CollectionConfig = {
   access: { read: () => true, create: isAuth, update: isAuth, delete: isAuth },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'group', 'jerseyNumber', 'role', 'battingStyle'],
+    defaultColumns: ['name', 'groupTier', 'jerseyNumber', 'role', 'battingStyle'],
     components: {
-      beforeListTable: ['@/components/admin/RecentFormFetchAllButton', '@/components/admin/ExportPlayersButton'],
+      beforeListTable: [
+        '@/components/admin/RecentFormFetchAllButton',
+        '@/components/admin/ExportPlayersButton',
+        '@/components/admin/MigrateGroupsButton',
+      ],
     },
   },
   fields: [
@@ -42,10 +46,17 @@ export const Players: CollectionConfig = {
         { label: 'Group 4', value: 'group-4' },
         { label: 'Group 5', value: 'group-5' },
       ],
-      admin: { description: 'Squad group / team tier' },
+      admin: { hidden: true, description: 'Legacy field — replaced by the Group relationship below. Kept only for migration.' },
+    },
+    {
+      name: 'groupTier',
+      type: 'relationship',
+      relationTo: 'groups',
+      label: 'Group',
+      admin: { description: 'Squad group / team tier — shown as a tab on the Squad page. Add a new group from the Groups section in the sidebar.' },
     },
     { name: 'photo', type: 'upload', relationTo: 'gallery' },
-    { name: 'team', type: 'relationship', relationTo: 'teams' },
+    { name: 'team', type: 'relationship', relationTo: 'teams', admin: { hidden: true } },
     {
       name: 'role',
       type: 'select',
