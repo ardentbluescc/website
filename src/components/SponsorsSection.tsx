@@ -11,8 +11,8 @@ const tierLabel: Record<string, string> = {
 function SponsorLogo({ sponsor, large = false }: { sponsor: any; large?: boolean }) {
   const content = (
     <div
-      className={`relative rounded-2xl border border-ardent-border bg-ardent-card flex items-center justify-center overflow-hidden group transition-all hover:border-ardent/40 ${
-        large ? 'h-40 sm:h-48' : 'h-28'
+      className={`relative rounded-2xl bg-ardent-card flex items-center justify-center overflow-hidden group transition-all ${
+        large ? 'h-40 sm:h-48' : 'aspect-square'
       }`}
     >
       {sponsor.logo?.url ? (
@@ -21,7 +21,7 @@ function SponsorLogo({ sponsor, large = false }: { sponsor: any; large?: boolean
           alt={sponsor.name}
           fill
           unoptimized
-          className="object-contain p-6 grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+          className="object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
           sizes="(max-width: 640px) 50vw, 25vw"
         />
       ) : (

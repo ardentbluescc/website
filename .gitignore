@@ -20,3 +20,4 @@ src/payload-types.ts
 .DS_Store
 *.log
 .vercel
+.env*

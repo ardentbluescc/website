@@ -19,12 +19,12 @@ const TIERS = [
 
 function SponsorCard({ sponsor, large = false }: { sponsor: any; large?: boolean }) {
   return (
-    <div className={`rounded-2xl border border-ardent-border bg-ardent-card p-6 flex flex-col ${large ? 'sm:flex-row sm:items-center gap-8' : 'gap-4'}`}>
-      <div className={`relative rounded-xl bg-navy-800 border border-ardent-border/60 flex-shrink-0 ${large ? 'w-full sm:w-64 h-40' : 'w-full h-28'}`}>
+    <div className={`rounded-2xl bg-ardent-card p-6 flex flex-col sm:flex-row sm:items-center ${large ? 'gap-8' : 'gap-6'}`}>
+      <div className={`relative flex-shrink-0 mx-auto sm:mx-0 ${large ? 'w-full sm:w-64 h-40' : 'w-32 h-32'}`}>
         {sponsor.logo?.url ? (
-          <Image src={sponsor.logo.url} alt={sponsor.name} fill unoptimized className="object-contain p-5" />
+          <Image src={sponsor.logo.url} alt={sponsor.name} fill unoptimized className="object-contain" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm font-semibold px-4 text-center">
+          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-navy-800/60 text-gray-500 text-sm font-semibold px-4 text-center">
             {sponsor.name}
           </div>
         )}
