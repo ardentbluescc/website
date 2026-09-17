@@ -11,6 +11,7 @@ const links = {
   Members: [
     { label: 'Join Now', href: JOIN_MAILTO },
     { label: 'Sponsors', href: '/sponsors' },
+    { label: 'Help Centre', href: '/faq' },
     { label: 'Contact', href: '/contact' },
   ],
   Legal: [

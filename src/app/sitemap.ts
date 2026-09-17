@@ -10,6 +10,7 @@ const staticRoutes = [
   '/fixtures',
   '/gallery',
   '/contact',
+  '/faq',
   '/code-of-conduct',
   '/privacy',
   '/terms',
