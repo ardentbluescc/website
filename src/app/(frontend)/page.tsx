@@ -3,7 +3,6 @@ import { getNCUNews, type NewsCardData } from '@/lib/ncu-news'
 import Hero from '@/components/Hero'
 import MissionSection from '@/components/MissionSection'
 import StatsSection from '@/components/StatsSection'
-import Testimonials from '@/components/Testimonials'
 import LatestNews from '@/components/LatestNews'
 import LiveScores from '@/components/LiveScores'
 import NvPlayFixtures from '@/components/NvPlayFixtures'
@@ -49,7 +48,6 @@ export default async function HomePage() {
       <NvPlayFixtures />
       <GalleryPreview photos={photos} />
       {news.length > 0 && <LatestNews articles={news} />}
-      <Testimonials />
       <SponsorsSection sponsors={sponsors} />
     </>
   )
