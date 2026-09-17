@@ -16,6 +16,7 @@ import { Teams } from './src/collections/Teams'
 import { Gallery } from './src/collections/Gallery'
 import { Fixtures } from './src/collections/Fixtures'
 import { Sponsors } from './src/collections/Sponsors'
+import { Committee } from './src/collections/Committee'
 import { ContactSubmissions } from './src/collections/ContactSubmissions'
 
 const filename = fileURLToPath(import.meta.url)
@@ -42,7 +43,7 @@ export default buildConfig({
       afterNavLinks: ['@/components/admin/ScorecardNavLink'],
     },
   },
-  collections: [Users, Members, News, Players, Groups, Teams, Gallery, Fixtures, Sponsors, ContactSubmissions],
+  collections: [Users, Members, News, Players, Groups, Teams, Gallery, Fixtures, Sponsors, Committee, ContactSubmissions],
   sharp,
   plugins: [
     vercelBlobStorage({

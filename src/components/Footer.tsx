@@ -7,6 +7,7 @@ const links = {
     { label: 'About', href: '/#about' },
     { label: 'News', href: '/news' },
     { label: 'Gallery', href: '/gallery' },
+    { label: 'Committee', href: '/committee' },
   ],
   Members: [
     { label: 'Join Now', href: JOIN_MAILTO },

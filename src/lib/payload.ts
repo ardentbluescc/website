@@ -90,3 +90,12 @@ export async function getSponsors() {
     sort: 'tier',
   })
 }
+
+export async function getCommittee() {
+  const payload = await getPayloadClient()
+  return payload.find({
+    collection: 'committee',
+    limit: 50,
+    sort: 'order',
+  })
+}
