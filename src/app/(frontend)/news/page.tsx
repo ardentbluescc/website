@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getNews } from '@/lib/payload'
-import { getNCUNews, type NewsCardData } from '@/lib/ncu-news'
+import { getNCUNews, sortNewsFeed, type NewsCardData } from '@/lib/ncu-news'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,11 +41,7 @@ export default async function NewsPage() {
     source: 'club',
   }))
 
-  const articles = [...clubArticles, ...ncuArticles].sort((a, b) => {
-    const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0
-    const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0
-    return dateB - dateA
-  })
+  const articles = sortNewsFeed([...clubArticles, ...ncuArticles])
 
   return (
     <div className="min-h-screen bg-navy-900 pt-28 pb-20">

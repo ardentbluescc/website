@@ -17,6 +17,16 @@ export interface NewsCardData {
   source: 'club' | 'ncu'
 }
 
+// Club-authored news always ranks above the NCU feed, newest first within each group.
+export function sortNewsFeed(items: NewsCardData[]): NewsCardData[] {
+  return [...items].sort((a, b) => {
+    if (a.source !== b.source) return a.source === 'club' ? -1 : 1
+    const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0
+    const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0
+    return dateB - dateA
+  })
+}
+
 function stripDiviShortcodes(html: string): string {
   return html
     .replace(/\[\/?et_pb_[^\]]*\]/g, '')

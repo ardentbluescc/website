@@ -1,5 +1,5 @@
 import { getNews, getGallery, getSponsors } from '@/lib/payload'
-import { getNCUNews, type NewsCardData } from '@/lib/ncu-news'
+import { getNCUNews, sortNewsFeed, type NewsCardData } from '@/lib/ncu-news'
 import Hero from '@/components/Hero'
 import MissionSection from '@/components/MissionSection'
 import StatsSection from '@/components/StatsSection'
@@ -31,13 +31,7 @@ export default async function HomePage() {
     source: 'club',
   }))
 
-  const news = [...clubNewsCards, ...ncuNews]
-    .sort((a, b) => {
-      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0
-      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0
-      return dateB - dateA
-    })
-    .slice(0, 4)
+  const news = sortNewsFeed([...clubNewsCards, ...ncuNews]).slice(0, 4)
 
   return (
     <>
