@@ -96,7 +96,7 @@ export default function Footer() {
             Copyright © {new Date().getFullYear()}{' '}
             <span className="text-gray-500">Ardent Blues CC</span>. All Rights Reserved.
           </p>
-          <p className="text-gray-600 text-sm">Northern Cricket Union — Official Member Club</p>
+          <p className="text-gray-600 text-sm">Northern Cricket Union (NCU) — Governing body</p>
         </div>
       </div>
 
