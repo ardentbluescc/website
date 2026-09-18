@@ -66,6 +66,7 @@ export async function getPlayers(teamId?: string) {
     collection: 'players',
     limit: 100,
     depth: 1,
+    sort: 'name',
     ...(teamId ? { where: { team: { equals: teamId } } } : {}),
   })
 }
