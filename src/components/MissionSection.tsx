@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function MissionSection() {
   return (
     <section id="about" className="py-28 bg-ardent">
@@ -6,6 +8,15 @@ export default function MissionSection() {
           Cricket is more than a sport.
           It&apos;s discipline, passion, and the club you bleed for.
         </p>
+        <Link
+          href="/about"
+          className="inline-flex items-center gap-2 mt-6 text-white/90 text-sm font-semibold hover:text-white transition-colors"
+        >
+          Our Story
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </Link>
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-8 border-t border-white/20 pt-10">
           {[
             { stat: 'Est. 2023', label: 'Belfast\'s newest challenger club' },

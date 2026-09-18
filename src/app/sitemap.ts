@@ -5,6 +5,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://abcca-xpnt.verce
 
 const staticRoutes = [
   '',
+  '/about',
   '/news',
   '/teams',
   '/fixtures',
