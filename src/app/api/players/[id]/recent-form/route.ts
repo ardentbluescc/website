@@ -1,32 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
+import { buildMatchLogEntry, deriveFormat, mergeBatting, mergeBowling } from '@/lib/player-stats-merge'
 
 export const maxDuration = 300
-
-function buildMatchLogEntry(entryBatting: any | undefined, entryBowling: any | undefined, matchInfo: any) {
-  const didBat  = !!entryBatting && !entryBatting.fieldingOnly
-  const didBowl = !!entryBowling
-  return {
-    matchId: matchInfo.matchId,
-    date: matchInfo.date ?? null,
-    competition: matchInfo.competition ?? null,
-    teamLabel: matchInfo.teamLabel ?? null,
-    opponent: matchInfo.opponent ?? null,
-    result: matchInfo.result ?? null,
-    didBat,
-    runs: didBat ? (entryBatting.runs ?? 0) : null,
-    balls: didBat ? (entryBatting.balls ?? 0) : null,
-    notOut: didBat ? !!entryBatting.notOut : false,
-    didBowl,
-    overs: didBowl ? (entryBowling.overs ?? 0) : null,
-    maidens: didBowl ? (entryBowling.maidens ?? 0) : null,
-    runsConceded: didBowl ? (entryBowling.runs ?? 0) : null,
-    wickets: didBowl ? (entryBowling.wickets ?? 0) : null,
-    catches: entryBatting?.catches ?? 0,
-    stumpings: entryBatting?.stumpings ?? 0,
-    runOuts: entryBatting?.runOuts ?? 0,
-  }
-}
 
 async function fetchWithTimeout(url: string, ms: number) {
   const controller = new AbortController()
@@ -70,6 +46,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     let currentLog: any[] = player.matchLog ?? []
     const existingIds = new Set(currentLog.map((r: any) => r.matchId))
+    const battingByFormat = new Map<string, any>((player.battingStats ?? []).map((r: any) => [r.format, r]))
+    const bowlingByFormat = new Map<string, any>((player.bowlingStats ?? []).map((r: any) => [r.format, r]))
     const toCheck = allMatches.filter((m: any) => !existingIds.has(m.matchId))
 
     const BATCH_SIZE = 40
@@ -80,25 +58,47 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // time limit), only the current batch's progress is lost, not the whole scan.
     for (let i = 0; i < toCheck.length; i += BATCH_SIZE) {
       const batch = toCheck.slice(i, i + BATCH_SIZE)
-      const batchRows = (await mapWithConcurrency(batch, 10, async (m: any) => {
+      let batchChanged = false
+
+      await mapWithConcurrency(batch, 10, async (m: any) => {
         try {
           const scRes = await fetchWithTimeout(`${origin}/api/nvplay/scorecard?matchId=${encodeURIComponent(m.matchId)}`, 15000)
-          if (!scRes.ok) return null
+          if (!scRes.ok) return
           const sc = await scRes.json()
           const bat = (sc.batting ?? []).find((b: any) => String(b.selectedPlayerId) === String(id))
           const bowl = (sc.bowling ?? []).find((b: any) => String(b.selectedPlayerId) === String(id))
-          if (!bat && !bowl) return null
-          return buildMatchLogEntry(bat, bowl, sc.matchInfo)
+          if (!bat && !bowl) return
+
+          currentLog = [...currentLog, buildMatchLogEntry(bat, bowl, sc.matchInfo)]
+          totalAdded++
+          batchChanged = true
+
+          const format = deriveFormat(sc.matchInfo?.competition, sc.matchInfo?.date)
+          if (format) {
+            if (bat) {
+              const merged = mergeBatting(battingByFormat.get(format) ?? null, bat, format, m.matchId)
+              if (!merged.skipped) battingByFormat.set(format, merged)
+            }
+            if (bowl) {
+              const merged = mergeBowling(bowlingByFormat.get(format) ?? null, bowl, format, m.matchId)
+              if (!merged.skipped) bowlingByFormat.set(format, merged)
+            }
+          }
         } catch {
           errors++
-          return null
         }
-      })).filter(Boolean)
+      })
 
-      if (batchRows.length > 0) {
-        currentLog = [...currentLog, ...batchRows]
-        await payload.update({ collection: 'players', id, data: { matchLog: currentLog } })
-        totalAdded += batchRows.length
+      if (batchChanged) {
+        await payload.update({
+          collection: 'players',
+          id,
+          data: {
+            matchLog: currentLog,
+            battingStats: Array.from(battingByFormat.values()),
+            bowlingStats: Array.from(bowlingByFormat.values()),
+          },
+        })
       }
     }
 

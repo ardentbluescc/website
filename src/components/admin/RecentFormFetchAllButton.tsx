@@ -19,7 +19,7 @@ export default function RecentFormFetchAllButton() {
       }
       setStatus('done')
       setMessage(
-        `Checked ${json.checked} matches — updated ${json.playersUpdated} player${json.playersUpdated === 1 ? '' : 's'} with ${json.totalRowsAdded} new ${json.totalRowsAdded === 1 ? 'entry' : 'entries'}.`
+        `Checked ${json.checked} matches — updated match history and stats for ${json.playersUpdated} player${json.playersUpdated === 1 ? '' : 's'}.`
       )
     } catch (e: any) {
       setStatus('error')
