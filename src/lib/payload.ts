@@ -64,7 +64,7 @@ export async function getPlayers(teamId?: string) {
   const payload = await getPayloadClient()
   return payload.find({
     collection: 'players',
-    limit: 100,
+    limit: 1000,
     depth: 1,
     sort: 'name',
     ...(teamId ? { where: { team: { equals: teamId } } } : {}),

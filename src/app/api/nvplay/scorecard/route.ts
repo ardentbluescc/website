@@ -71,7 +71,7 @@ export async function GET(req: Request) {
 
     // Load all Payload players for fuzzy matching
     const payload = await getPayloadClient()
-    const { docs: players } = await payload.find({ collection: 'players', limit: 500, depth: 0 })
+    const { docs: players } = await payload.find({ collection: 'players', limit: 1000, depth: 0 })
     const playerOptions = players.map((p: any) => ({ id: p.id, name: p.name }))
 
     // --- Parse batting ---

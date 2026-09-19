@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [{ docs: news }, { docs: players }] = await Promise.all([
     payload.find({ collection: 'news', limit: 500, where: { status: { equals: 'published' } } }),
-    payload.find({ collection: 'players', limit: 500 }),
+    payload.find({ collection: 'players', limit: 1000 }),
   ])
 
   const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({

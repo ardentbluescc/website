@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({ error: 'You must be logged in to use this tool.' }, { status: 401 })
 
     const origin = new URL(req.url).origin
-    const { docs: players } = await payload.find({ collection: 'players', limit: 500, depth: 0 })
+    const { docs: players } = await payload.find({ collection: 'players', limit: 1000, depth: 0 })
     const playerById = new Map<string, any>((players as any[]).map((p) => [String(p.id), p]))
 
     const matchLogByPlayer = new Map<string, any[]>()

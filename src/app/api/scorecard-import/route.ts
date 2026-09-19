@@ -148,7 +148,7 @@ export async function POST(req: Request) {
     }
 
     // Fetch all players for name matching
-    const { docs: players } = await payload.find({ collection: 'players', limit: 500 })
+    const { docs: players } = await payload.find({ collection: 'players', limit: 1000 })
 
     const playerOptions = players.map((p: any) => ({ id: String(p.id), name: p.name }))
 
