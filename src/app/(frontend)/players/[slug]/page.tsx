@@ -281,10 +281,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         {hasBatting && (
           <section>
             <h2 className="text-xl font-semibold text-white mb-5">Batting &amp; Fielding</h2>
-            <div className="overflow-x-auto rounded-xl border border-ardent-border">
-              <table className="w-full text-sm min-w-[700px]">
+            <div className="rounded-xl border border-ardent-border overflow-hidden">
+              <div className="overflow-auto max-h-[420px]">
+                <table className="w-full text-sm min-w-[700px]">
                 <thead>
-                  <tr className="bg-navy-800 border-b border-ardent-border">
+                  <tr className="bg-navy-800 border-b border-ardent-border sticky top-0 z-10">
                     <th className="text-left px-4 py-3 w-40" />
                     {BATTING_COLS.map(({ label }) => (
                       <th
@@ -310,7 +311,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           </section>
         )}
@@ -319,10 +321,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         {hasBowling && (
           <section>
             <h2 className="text-xl font-semibold text-white mb-5">Bowling</h2>
-            <div className="overflow-x-auto rounded-xl border border-ardent-border">
-              <table className="w-full text-sm min-w-[680px]">
+            <div className="rounded-xl border border-ardent-border overflow-hidden">
+              <div className="overflow-auto max-h-[420px]">
+                <table className="w-full text-sm min-w-[680px]">
                 <thead>
-                  <tr className="bg-navy-800 border-b border-ardent-border">
+                  <tr className="bg-navy-800 border-b border-ardent-border sticky top-0 z-10">
                     <th className="text-left px-4 py-3 w-40" />
                     {BOWLING_COLS.map(({ label }) => (
                       <th
@@ -348,7 +351,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           </section>
         )}
