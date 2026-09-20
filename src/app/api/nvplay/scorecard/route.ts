@@ -202,6 +202,33 @@ export async function GET(req: Request) {
       }
     }
 
+    // --- Reconcile: a player who bowled should also count as having played the match on
+    // the batting/fielding side, even if the source scorecard's batting card never listed
+    // them (no batting entry, no DNB entry, no fielding dismissal). Without this, "matches"
+    // on the two tables can silently drift apart — bowling counts the match, batting doesn't.
+    const battedPlayerIds = new Set(batting.filter(b => b.selectedPlayerId).map(b => String(b.selectedPlayerId)))
+    for (const bw of bowling) {
+      if (!bw.selectedPlayerId || battedPlayerIds.has(String(bw.selectedPlayerId))) continue
+      battedPlayerIds.add(String(bw.selectedPlayerId))
+      batting.push({
+        name: bw.name,
+        runs: null,
+        balls: null,
+        fours: null,
+        sixes: null,
+        strikeRate: null,
+        notOut: false,
+        howOut: null,
+        catches: 0,
+        stumpings: 0,
+        runOuts: 0,
+        fieldingOnly: true,
+        matchedPlayer: bw.matchedPlayer,
+        selectedPlayerId: bw.selectedPlayerId,
+        include: true,
+      })
+    }
+
     const isTeam1Ardent = (match.Team1Name ?? '').toLowerCase().includes('ardent')
     const teamLabel = isTeam1Ardent ? match.Team1Name : match.Team2Name
     const opponent  = isTeam1Ardent ? match.Team2Name : match.Team1Name

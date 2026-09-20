@@ -27,23 +27,37 @@ function shapeMatch(m: any, type: 'live' | 'fixture' | 'result') {
   }
 }
 
-async function fetchPage(page: number): Promise<any[]> {
+async function fetchPage(page: number, maxResults: number): Promise<any[]> {
   const params = new URLSearchParams({
     customerid: NCU_CUSTOMER_ID,
     addFilters: 'false', advanced: 'false',
     currentSeason: 'false',
-    days: '1500',
+    days: '3650',
     showFixtures: 'false',
     showLive: 'false',
     showResults: 'true',
     completedResultsOnly: 'true',
     page: String(page),
-    maxResults: '500',
+    maxResults: String(maxResults),
   })
   const res = await fetch(`${BASE}?${params}`, { next: { revalidate: 300 } })
   if (!res.ok) return []
   const data = await res.json()
-  return (data.Results ?? []).filter(isArdentBlues)
+  return data.Results ?? []
+}
+
+// Pages through every result NV Play has (not just a fixed number of pages) — stops once
+// a page comes back short of a full page, which means it was the last one.
+async function fetchAllResults(): Promise<any[]> {
+  const MAX_RESULTS = 500
+  const HARD_PAGE_CAP = 100 // safety net against an infinite loop, not a real intended limit
+  const all: any[] = []
+  for (let page = 0; page < HARD_PAGE_CAP; page++) {
+    const results = await fetchPage(page, MAX_RESULTS)
+    all.push(...results)
+    if (results.length < MAX_RESULTS) break
+  }
+  return all.filter(isArdentBlues)
 }
 
 async function fetchFixtures(): Promise<any[]> {
@@ -84,11 +98,10 @@ async function fetchLive(): Promise<any[]> {
 
 export async function GET() {
   try {
-    const PAGES = 10
-    const [liveRaw, fixturesRaw, ...pageResults] = await Promise.all([
+    const [liveRaw, fixturesRaw, resultsRaw] = await Promise.all([
       fetchLive(),
       fetchFixtures(),
-      ...Array.from({ length: PAGES }, (_, i) => fetchPage(i)),
+      fetchAllResults(),
     ])
 
     const live = liveRaw.map(m => shapeMatch(m, 'live'))
@@ -97,8 +110,7 @@ export async function GET() {
       .map(m => shapeMatch(m, 'fixture'))
       .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))  // soonest first
 
-    const results = pageResults
-      .flat()
+    const results = resultsRaw
       .filter(m => (m.StartDateTime ?? '') >= '2023-01-01')
       .map(m => shapeMatch(m, 'result'))
       .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))  // newest first
