@@ -107,6 +107,15 @@ export const Players: CollectionConfig = {
       admin: { description: 'Add one row per league or format' },
       fields: [
         { name: 'format', type: 'text', required: true, admin: { description: 'e.g. "NCU Junior League 5 · 2026" — matches from same competition+year are merged automatically' } },
+        {
+          name: 'source',
+          type: 'select',
+          options: [
+            { label: 'NV Play (auto-synced)', value: 'nvplay' },
+            { label: 'Manual', value: 'manual' },
+          ],
+          admin: { description: 'NV Play rows are fully recalculated on every sync — edit Manual rows freely, they are never touched by the sync.' },
+        },
         { name: 'matches', type: 'number' },
         { name: 'innings', type: 'number' },
         { name: 'notOut', type: 'number', label: 'Not Out' },
@@ -137,6 +146,15 @@ export const Players: CollectionConfig = {
       admin: { description: 'Add one row per league or format' },
       fields: [
         { name: 'format', type: 'text', required: true, admin: { description: 'e.g. Senior League 2, T20 Bowl' } },
+        {
+          name: 'source',
+          type: 'select',
+          options: [
+            { label: 'NV Play (auto-synced)', value: 'nvplay' },
+            { label: 'Manual', value: 'manual' },
+          ],
+          admin: { description: 'NV Play rows are fully recalculated on every sync — edit Manual rows freely, they are never touched by the sync.' },
+        },
         { name: 'matches', type: 'number' },
         { name: 'innings', type: 'number' },
         { name: 'balls', type: 'number' },
@@ -172,6 +190,8 @@ export const Players: CollectionConfig = {
         { name: 'didBat', type: 'checkbox', defaultValue: false },
         { name: 'runs', type: 'number' },
         { name: 'balls', type: 'number' },
+        { name: 'fours', type: 'number' },
+        { name: 'sixes', type: 'number' },
         { name: 'notOut', type: 'checkbox', defaultValue: false },
         { name: 'didBowl', type: 'checkbox', defaultValue: false },
         { name: 'overs', type: 'number' },

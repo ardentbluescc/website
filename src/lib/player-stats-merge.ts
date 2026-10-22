@@ -53,6 +53,7 @@ export function mergeBatting(existing: any | null, nm: any, format: string, matc
     const dismissals = didBat ? (1 - newNO) : 0
     return {
       format,
+      source:     'manual',
       matches:    1,
       innings:    didBat ? 1 : 0,
       notOut:     newNO,
@@ -107,6 +108,7 @@ export function mergeBatting(existing: any | null, nm: any, format: string, matc
 
   return {
     format,
+    source:     'manual',
     matches:    totMatches,
     innings:    totInnings,
     notOut:     totNO,
@@ -144,6 +146,7 @@ export function mergeBowling(existing: any | null, nm: any, format: string, matc
     const totOvers = newBalls / 6
     return {
       format,
+      source:      'manual',
       matches:     1,
       innings:     didBowl ? 1 : 0,
       balls:       newBalls,
@@ -168,6 +171,7 @@ export function mergeBowling(existing: any | null, nm: any, format: string, matc
 
   return {
     format,
+    source:      'manual',
     matches:     totMatches,
     innings:     totInnings,
     balls:       totBalls,
@@ -199,6 +203,8 @@ export function buildMatchLogEntry(entryBatting: any | undefined, entryBowling: 
     didBat,
     runs: didBat ? (entryBatting.runs ?? 0) : null,
     balls: didBat ? (entryBatting.balls ?? 0) : null,
+    fours: didBat ? (entryBatting.fours ?? 0) : null,
+    sixes: didBat ? (entryBatting.sixes ?? 0) : null,
     notOut: didBat ? !!entryBatting.notOut : false,
     didBowl,
     overs: didBowl ? (entryBowling.overs ?? 0) : null,
@@ -208,5 +214,148 @@ export function buildMatchLogEntry(entryBatting: any | undefined, entryBowling: 
     catches: entryBatting?.catches ?? 0,
     stumpings: entryBatting?.stumpings ?? 0,
     runOuts: entryBatting?.runOuts ?? 0,
+  }
+}
+
+// ── Regenerating battingStats/bowlingStats from matchLog ───────────────────────
+// matchLog dedupes reliably by matchId (a plain Set check), unlike the incremental
+// merge above which can drift out of sync with its own importedMatchIds tracking if a
+// merge ever happens without a match ID. So instead of incrementally merging NV Play
+// data into battingStats/bowlingStats, every sync fully recomputes those rows from the
+// current matchLog — always exactly consistent with it, no drift possible. Rows tagged
+// source: 'manual' (created via the scorecard-image import tool) are never touched.
+
+function computeBattingRowFromMatchLog(entries: any[], format: string) {
+  let innings = 0, notOut = 0, runs = 0, balls = 0, fours = 0, sixes = 0
+  let hundreds = 0, fifties = 0, catches = 0, stumpings = 0, runOuts = 0
+  let highScoreNum = 0, highScoreNO = false, everBatted = false
+
+  for (const m of entries) {
+    catches += m.catches ?? 0
+    stumpings += m.stumpings ?? 0
+    runOuts += m.runOuts ?? 0
+    if (m.didBat) {
+      everBatted = true
+      innings++
+      const r = m.runs ?? 0
+      runs += r
+      balls += m.balls ?? 0
+      fours += m.fours ?? 0
+      sixes += m.sixes ?? 0
+      if (m.notOut) notOut++
+      if (r >= 100) hundreds++
+      else if (r >= 50) fifties++
+      if (r > highScoreNum || (r === highScoreNum && m.notOut && !highScoreNO)) {
+        highScoreNum = r
+        highScoreNO = !!m.notOut
+      }
+    }
+  }
+
+  const dismissals = innings - notOut
+  return {
+    format,
+    source: 'nvplay',
+    matches: entries.length,
+    innings,
+    notOut,
+    runs,
+    balls,
+    highScore: everBatted ? `${highScoreNum}${highScoreNO ? '*' : ''}` : '-',
+    average: dismissals > 0 ? parseFloat((runs / dismissals).toFixed(2)) : null,
+    strikeRate: balls > 0 ? parseFloat(((runs / balls) * 100).toFixed(2)) : null,
+    hundreds,
+    fifties,
+    fours,
+    sixes,
+    catches,
+    stumpings,
+    runOuts,
+    importedMatchIds: entries.map((m) => m.matchId),
+  }
+}
+
+function computeBowlingRowFromMatchLog(entries: any[], format: string) {
+  const bowled = entries.filter((m) => m.didBowl)
+  let balls = 0, runs = 0, wickets = 0, fourWickets = 0, fiveWickets = 0
+  let bestWkts = -1, bestRuns = 0
+
+  for (const m of bowled) {
+    balls += parseBalls(m.overs ?? 0)
+    const r = m.runsConceded ?? 0
+    runs += r
+    const w = m.wickets ?? 0
+    wickets += w
+    if (w === 4) fourWickets++
+    if (w >= 5) fiveWickets++
+    if (w > bestWkts || (w === bestWkts && r < bestRuns)) {
+      bestWkts = w
+      bestRuns = r
+    }
+  }
+
+  const overs = balls / 6
+  return {
+    format,
+    source: 'nvplay',
+    matches: bowled.length,
+    innings: bowled.length,
+    balls,
+    runs,
+    wickets,
+    bestBowling: bestWkts >= 0 ? `${bestWkts}/${bestRuns}` : '-',
+    average: wickets > 0 ? parseFloat((runs / wickets).toFixed(2)) : null,
+    economy: overs > 0 ? parseFloat((runs / overs).toFixed(2)) : null,
+    strikeRate: wickets > 0 && balls > 0 ? parseFloat((balls / wickets).toFixed(2)) : null,
+    fourWickets,
+    fiveWickets,
+    importedMatchIds: bowled.map((m) => m.matchId),
+  }
+}
+
+/**
+ * Rebuilds battingStats/bowlingStats from the current matchLog. Any existing row explicitly
+ * tagged source: 'manual' is always preserved untouched. Any existing row for a format that
+ * matchLog has no entries for is also left as-is (protects data NV Play has never covered —
+ * e.g. a friendly logged by hand while NV Play was down). Everything else for a format that
+ * matchLog *does* cover gets replaced with a freshly computed row.
+ */
+export function regenerateStatsFromMatchLog(
+  matchLog: any[],
+  existingBattingStats: any[] | undefined,
+  existingBowlingStats: any[] | undefined
+): { battingStats: any[]; bowlingStats: any[] } {
+  const byFormat = new Map<string, any[]>()
+  for (const m of matchLog) {
+    const format = deriveFormat(m.competition, m.date)
+    if (!format) continue
+    if (!byFormat.has(format)) byFormat.set(format, [])
+    byFormat.get(format)!.push(m)
+  }
+
+  const freshBatting = new Map<string, any>()
+  const freshBowling = new Map<string, any>()
+  for (const [format, entries] of byFormat) {
+    freshBatting.set(format, computeBattingRowFromMatchLog(entries, format))
+    freshBowling.set(format, computeBowlingRowFromMatchLog(entries, format))
+  }
+
+  function mergeRows(existingRows: any[] | undefined, freshMap: Map<string, any>): any[] {
+    const result: any[] = []
+    for (const row of existingRows ?? []) {
+      if (row.source === 'manual') {
+        result.push(row)
+        continue
+      }
+      if (freshMap.has(row.format)) continue // replaced below
+      result.push(row) // no fresh data for this format — leave untouched
+    }
+    for (const row of freshMap.values()) result.push(row)
+    return result
+  }
+
+  return {
+    battingStats: mergeRows(existingBattingStats, freshBatting),
+    bowlingStats: mergeRows(existingBowlingStats, freshBowling),
   }
 }

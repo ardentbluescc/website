@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
-import { buildMatchLogEntry, deriveFormat, mergeBatting, mergeBowling } from '@/lib/player-stats-merge'
+import { buildMatchLogEntry, regenerateStatsFromMatchLog } from '@/lib/player-stats-merge'
 
 export const maxDuration = 300
 
@@ -29,9 +29,10 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T)
 
 // Bulk version of /api/players/[id]/recent-form — fetches every NV Play match ONCE and
 // applies it to every matched player, instead of re-fetching the same match once per player.
-// Updates matchLog (Recent Form / By Competition), and also merges into battingStats /
-// bowlingStats per competition+year, using the same merge logic as the scorecard-image
-// import so both entry points keep the aggregated career tables consistent.
+// Updates matchLog (dedupes by match ID, the Recent Form / By Competition source), then fully
+// regenerates battingStats/bowlingStats from the resulting matchLog for every player who has
+// one — a full recompute every run rather than an incremental merge, so there's no drift
+// state that can silently go out of sync. Rows tagged source: 'manual' are never touched.
 export async function POST(req: Request) {
   try {
     const payload = await getPayloadClient()
@@ -44,16 +45,11 @@ export async function POST(req: Request) {
 
     const matchLogByPlayer = new Map<string, any[]>()
     const existingMatchIdsByPlayer = new Map<string, Set<string>>()
-    const battingByPlayer = new Map<string, Map<string, any>>()
-    const bowlingByPlayer = new Map<string, Map<string, any>>()
-    const changedPlayers = new Set<string>()
 
     for (const p of players as any[]) {
       const pid = String(p.id)
       matchLogByPlayer.set(pid, [...(p.matchLog ?? [])])
       existingMatchIdsByPlayer.set(pid, new Set((p.matchLog ?? []).map((m: any) => m.matchId)))
-      battingByPlayer.set(pid, new Map((p.battingStats ?? []).map((r: any) => [r.format, r])))
-      bowlingByPlayer.set(pid, new Map((p.bowlingStats ?? []).map((r: any) => [r.format, r])))
     }
 
     const matchesRes = await fetchWithTimeout(`${origin}/api/nvplay/matches`, 30000)
@@ -85,39 +81,13 @@ export async function POST(req: Request) {
             byPlayerId.set(String(bw.selectedPlayerId), { ...byPlayerId.get(String(bw.selectedPlayerId)), bowling: bw })
           }
 
-          const format = deriveFormat(sc.matchInfo?.competition, sc.matchInfo?.date)
-
           for (const [playerId, entry] of byPlayerId) {
             if (!playerById.has(playerId)) continue
-
-            // Match log — one row per match, independent of the aggregates below.
             const logIds = existingMatchIdsByPlayer.get(playerId)!
-            if (!logIds.has(m.matchId)) {
-              const row = buildMatchLogEntry(entry.batting, entry.bowling, sc.matchInfo)
-              matchLogByPlayer.get(playerId)!.push(row)
-              logIds.add(m.matchId)
-              changedPlayers.add(playerId)
-            }
-
-            // Aggregated battingStats / bowlingStats, grouped by competition + year.
-            if (format) {
-              if (entry.batting) {
-                const bMap = battingByPlayer.get(playerId)!
-                const merged = mergeBatting(bMap.get(format) ?? null, entry.batting, format, m.matchId)
-                if (!merged.skipped) {
-                  bMap.set(format, merged)
-                  changedPlayers.add(playerId)
-                }
-              }
-              if (entry.bowling) {
-                const wMap = bowlingByPlayer.get(playerId)!
-                const merged = mergeBowling(wMap.get(format) ?? null, entry.bowling, format, m.matchId)
-                if (!merged.skipped) {
-                  wMap.set(format, merged)
-                  changedPlayers.add(playerId)
-                }
-              }
-            }
+            if (logIds.has(m.matchId)) continue
+            const row = buildMatchLogEntry(entry.batting, entry.bowling, sc.matchInfo)
+            matchLogByPlayer.get(playerId)!.push(row)
+            logIds.add(m.matchId)
           }
         } catch {
           errors++
@@ -126,15 +96,14 @@ export async function POST(req: Request) {
     }
 
     let playersUpdated = 0
-    for (const playerId of changedPlayers) {
+    for (const [playerId, player] of playerById) {
+      const matchLog = matchLogByPlayer.get(playerId)!
+      if (matchLog.length === 0) continue
+      const { battingStats, bowlingStats } = regenerateStatsFromMatchLog(matchLog, player.battingStats, player.bowlingStats)
       await payload.update({
         collection: 'players',
         id: playerId,
-        data: {
-          matchLog: matchLogByPlayer.get(playerId),
-          battingStats: Array.from(battingByPlayer.get(playerId)!.values()),
-          bowlingStats: Array.from(bowlingByPlayer.get(playerId)!.values()),
-        },
+        data: { matchLog, battingStats, bowlingStats },
       })
       playersUpdated++
     }

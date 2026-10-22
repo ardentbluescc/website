@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
-import { buildMatchLogEntry, deriveFormat, mergeBatting, mergeBowling } from '@/lib/player-stats-merge'
+import { buildMatchLogEntry, regenerateStatsFromMatchLog } from '@/lib/player-stats-merge'
 
 export const maxDuration = 300
 
@@ -46,8 +46,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     let currentLog: any[] = player.matchLog ?? []
     const existingIds = new Set(currentLog.map((r: any) => r.matchId))
-    const battingByFormat = new Map<string, any>((player.battingStats ?? []).map((r: any) => [r.format, r]))
-    const bowlingByFormat = new Map<string, any>((player.bowlingStats ?? []).map((r: any) => [r.format, r]))
     const toCheck = allMatches.filter((m: any) => !existingIds.has(m.matchId))
 
     const BATCH_SIZE = 40
@@ -56,6 +54,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     // Batched + written incrementally: if this ever gets cut off mid-run (serverless
     // time limit), only the current batch's progress is lost, not the whole scan.
+    // battingStats/bowlingStats are fully regenerated from matchLog on every write, so
+    // there's never an incremental-merge drift state to lose either.
     for (let i = 0; i < toCheck.length; i += BATCH_SIZE) {
       const batch = toCheck.slice(i, i + BATCH_SIZE)
       let batchChanged = false
@@ -72,34 +72,26 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           currentLog = [...currentLog, buildMatchLogEntry(bat, bowl, sc.matchInfo)]
           totalAdded++
           batchChanged = true
-
-          const format = deriveFormat(sc.matchInfo?.competition, sc.matchInfo?.date)
-          if (format) {
-            if (bat) {
-              const merged = mergeBatting(battingByFormat.get(format) ?? null, bat, format, m.matchId)
-              if (!merged.skipped) battingByFormat.set(format, merged)
-            }
-            if (bowl) {
-              const merged = mergeBowling(bowlingByFormat.get(format) ?? null, bowl, format, m.matchId)
-              if (!merged.skipped) bowlingByFormat.set(format, merged)
-            }
-          }
         } catch {
           errors++
         }
       })
 
       if (batchChanged) {
+        const { battingStats, bowlingStats } = regenerateStatsFromMatchLog(currentLog, player.battingStats, player.bowlingStats)
         await payload.update({
           collection: 'players',
           id,
-          data: {
-            matchLog: currentLog,
-            battingStats: Array.from(battingByFormat.values()),
-            bowlingStats: Array.from(bowlingByFormat.values()),
-          },
+          data: { matchLog: currentLog, battingStats, bowlingStats },
         })
       }
+    }
+
+    // No new matches, but still worth a regeneration pass — corrects any pre-existing
+    // drift in the aggregated tables even when there's nothing new to fetch.
+    if (totalAdded === 0 && currentLog.length > 0) {
+      const { battingStats, bowlingStats } = regenerateStatsFromMatchLog(currentLog, player.battingStats, player.bowlingStats)
+      await payload.update({ collection: 'players', id, data: { battingStats, bowlingStats } })
     }
 
     return NextResponse.json({ checked: toCheck.length, added: totalAdded, errors })
