@@ -130,7 +130,7 @@ export default async function MatchPage({ params }: { params: Promise<{ matchId:
 
   return (
     <div className="min-h-screen bg-navy-900">
-      <div className="pt-24 pb-0 max-w-5xl mx-auto px-6">
+      <div className="pt-28 pb-0 max-w-5xl mx-auto px-6">
         <nav className="flex items-center gap-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-gray-400 transition-colors">Home</Link>
           <span>›</span>

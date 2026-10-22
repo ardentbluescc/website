@@ -233,7 +233,7 @@ export default function ScorecardImportPage() {
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-navy-900 pt-24 pb-20">
+    <div className="min-h-screen bg-navy-900 pt-28 pb-20">
       <div className="max-w-6xl mx-auto px-6">
 
         {/* Header */}

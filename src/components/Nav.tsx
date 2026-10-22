@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { JOIN_MAILTO } from '@/lib/contact'
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -19,18 +18,18 @@ export default function Nav() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-navy-900/80 backdrop-blur-lg border-b border-ardent-border/40">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href="/" className="flex items-center gap-3 group">
           <Image
             src="/logo.png"
             alt="Ardent Blues Cricket Club"
-            width={44}
-            height={44}
+            width={76}
+            height={76}
             className="rounded-full drop-shadow-lg"
             priority
           />
-          <span className="text-white font-semibold text-base hidden sm:block">
+          <span className="text-white font-semibold text-xl hidden sm:block">
             Ardent Blues <span className="text-ardent-light">CC</span>
           </span>
         </Link>
@@ -48,14 +47,8 @@ export default function Nav() {
           ))}
         </div>
 
-        {/* CTA + hamburger */}
-        <div className="flex items-center gap-3">
-          <a
-            href={JOIN_MAILTO}
-            className="hidden sm:inline-flex items-center gap-2 bg-ardent hover:bg-ardent-light text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:scale-105 shadow-lg shadow-ardent/20"
-          >
-            Join Now
-          </a>
+        {/* Hamburger */}
+        <div className="flex items-center gap-3 md:hidden">
           <button
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
@@ -88,13 +81,6 @@ export default function Nav() {
                 {label}
               </Link>
             ))}
-            <a
-              href={JOIN_MAILTO}
-              className="text-gray-300 hover:text-white text-sm font-medium py-1"
-              onClick={() => setOpen(false)}
-            >
-              Join Now
-            </a>
           </div>
         </div>
       )}

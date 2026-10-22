@@ -19,18 +19,23 @@ const TIERS = [
 
 function SponsorCard({ sponsor, large = false }: { sponsor: any; large?: boolean }) {
   return (
-    <div className={`rounded-2xl bg-ardent-card p-6 flex flex-col sm:flex-row sm:items-center ${large ? 'gap-8' : 'gap-6'}`}>
-      <div className={`relative flex-shrink-0 mx-auto sm:mx-0 ${large ? 'w-full sm:w-64 h-40' : 'w-32 h-32'}`}>
+    <div className={`rounded-2xl bg-ardent-card flex flex-col sm:flex-row sm:items-center ${large ? 'p-8 gap-10' : 'p-6 gap-6'}`}>
+      {/* Fixed-size logo tile so every sponsor renders at the same footprint regardless of the image's aspect ratio */}
+      <div
+        className={`relative flex-shrink-0 mx-auto sm:mx-0 overflow-hidden rounded-xl bg-white ${
+          large ? 'w-full max-w-sm aspect-[4/3] sm:w-80' : 'w-40 h-40'
+        }`}
+      >
         {sponsor.logo?.url ? (
           <Image src={sponsor.logo.url} alt={sponsor.name} fill unoptimized className="object-contain" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-navy-800/60 text-gray-500 text-sm font-semibold px-4 text-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-navy-800 text-gray-400 text-sm font-semibold px-4 text-center">
             {sponsor.name}
           </div>
         )}
       </div>
-      <div className="flex-1">
-        <h3 className="text-white font-semibold text-lg mb-1">{sponsor.name}</h3>
+      <div className="flex-1 text-center sm:text-left">
+        <h3 className={`text-white font-semibold mb-1 ${large ? 'text-2xl md:text-3xl' : 'text-lg'}`}>{sponsor.name}</h3>
         {sponsor.description && <p className="text-gray-400 text-sm leading-relaxed mb-3">{sponsor.description}</p>}
         {sponsor.website && (
           <a

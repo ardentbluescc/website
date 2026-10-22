@@ -9,11 +9,12 @@ const tierLabel: Record<string, string> = {
 }
 
 function SponsorLogo({ sponsor, large = false }: { sponsor: any; large?: boolean }) {
-  const content = (
+  // Every logo sits in a same-size white tile, so wide and square logos share one footprint
+  const tile = (
     <div
-      className={`relative rounded-2xl bg-ardent-card flex items-center justify-center overflow-hidden group transition-all ${
-        large ? 'h-40 sm:h-48' : 'aspect-square'
-      }`}
+      className={`relative overflow-hidden rounded-2xl ${sponsor.logo?.url ? 'bg-white' : 'bg-ardent-card'} ${
+        large ? 'h-full aspect-[4/3]' : 'w-36 sm:w-44 lg:w-52 aspect-square'
+      } flex items-center justify-center`}
     >
       {sponsor.logo?.url ? (
         <Image
@@ -21,13 +22,18 @@ function SponsorLogo({ sponsor, large = false }: { sponsor: any; large?: boolean
           alt={sponsor.name}
           fill
           unoptimized
-          className="object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+          className="object-contain grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
           sizes="(max-width: 640px) 50vw, 25vw"
         />
       ) : (
         <span className="text-gray-500 text-sm font-semibold px-4 text-center">{sponsor.name}</span>
       )}
     </div>
+  )
+  const content = large ? (
+    <div className="group rounded-2xl bg-ardent-card h-40 sm:h-48 p-4 flex items-center justify-center">{tile}</div>
+  ) : (
+    <div className="group">{tile}</div>
   )
   return sponsor.website ? (
     <a href={sponsor.website} target="_blank" rel="noopener noreferrer" aria-label={sponsor.name}>
@@ -75,7 +81,7 @@ export default function SponsorsSection({ sponsors }: { sponsors: any[] }) {
             {titleSponsor && (
               <SponsorLogo sponsor={titleSponsor} large />
             )}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
               {rest.map((sponsor) => (
                 <SponsorLogo key={sponsor.id} sponsor={sponsor} />
               ))}
