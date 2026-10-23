@@ -193,12 +193,12 @@ export default function GalleryTabs({ photos }: { photos: any[] }) {
       )}
 
       {/* Grid */}
-      <div className="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 items-start">
         {visible.map((photo, i) => (
           <button
             key={photo.id}
             onClick={() => setLightboxIndex(i)}
-            className="break-inside-avoid bg-ardent-card border border-ardent-border overflow-hidden hover:border-ardent/40 transition-all group block w-full text-left cursor-pointer"
+            className="bg-ardent-card border border-ardent-border overflow-hidden hover:border-ardent/40 transition-all group block w-full text-left cursor-pointer"
           >
             {photo.url ? (
               <div className="relative w-full aspect-square">

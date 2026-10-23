@@ -29,7 +29,7 @@ export default function Nav() {
             className="rounded-full drop-shadow-lg"
             priority
           />
-          <span className="text-white font-semibold text-xl hidden sm:block">
+          <span className="text-white font-semibold text-xl md:text-2xl hidden sm:block">
             Ardent Blues <span className="text-ardent-light">CC</span>
           </span>
         </Link>
