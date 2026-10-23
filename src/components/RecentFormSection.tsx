@@ -57,28 +57,30 @@ export default function RecentFormSection({ matchLog }: { matchLog: any[] }) {
         )}
       </div>
 
-      <div className="rounded-xl border border-ardent-border overflow-hidden divide-y divide-ardent-border/40">
-        {matches.map((m: any, i: number) => {
-          const row = (
-            <>
-              <span className="text-xs text-gray-500 w-24 flex-shrink-0 tabular-nums">
-                {new Date(m.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </span>
-              <span className="text-white font-semibold text-sm tabular-nums">{formLine(m)}</span>
-              <span className="ml-auto text-xs text-gray-500 text-right">
-                {m.teamLabel && m.opponent ? `${m.teamLabel} v ${m.opponent}` : m.opponent ?? ''}
-                {m.competition && <> · <span className="text-gray-400">{m.competition}</span></>}
-              </span>
-              {m.matchId && <span className="text-gray-600 flex-shrink-0">›</span>}
-            </>
-          )
-          const rowClass = 'flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3.5 bg-ardent-card hover:bg-navy-800/60 transition-colors'
-          return m.matchId ? (
-            <Link key={m.matchId} href={`/matches/${m.matchId}`} className={rowClass}>{row}</Link>
-          ) : (
-            <div key={i} className={rowClass}>{row}</div>
-          )
-        })}
+      <div className="rounded-xl border border-ardent-border overflow-hidden">
+        <div className="overflow-y-auto max-h-[420px] divide-y divide-ardent-border/40">
+          {matches.map((m: any, i: number) => {
+            const row = (
+              <>
+                <span className="text-xs text-gray-500 w-24 flex-shrink-0 tabular-nums">
+                  {new Date(m.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+                <span className="text-white font-semibold text-sm tabular-nums">{formLine(m)}</span>
+                <span className="ml-auto text-xs text-gray-500 text-right">
+                  {m.teamLabel && m.opponent ? `${m.teamLabel} v ${m.opponent}` : m.opponent ?? ''}
+                  {m.competition && <> · <span className="text-gray-400">{m.competition}</span></>}
+                </span>
+                {m.matchId && <span className="text-gray-600 flex-shrink-0">›</span>}
+              </>
+            )
+            const rowClass = 'flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3.5 bg-ardent-card hover:bg-navy-800/60 transition-colors'
+            return m.matchId ? (
+              <Link key={m.matchId} href={`/matches/${m.matchId}`} className={rowClass}>{row}</Link>
+            ) : (
+              <div key={i} className={rowClass}>{row}</div>
+            )
+          })}
+        </div>
       </div>
     </section>
   )
