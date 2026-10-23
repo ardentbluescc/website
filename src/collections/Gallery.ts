@@ -2,7 +2,14 @@ import type { CollectionConfig } from 'payload'
 
 export const Gallery: CollectionConfig = {
   slug: 'gallery',
-  admin: { useAsTitle: 'alt' },
+  // Drag-and-drop ordering in /admin → Gallery. Filter by year, then drag photos into the order
+  // they should appear on the site; new uploads land at the end.
+  orderable: true,
+  admin: {
+    useAsTitle: 'alt',
+    defaultColumns: ['alt', 'year', 'category', 'showInGallery'],
+    components: { beforeListTable: ['@/components/admin/GalleryYearFilter'] },
+  },
   access: {
     read: () => true,
     create: ({ req }) => !!req.user,

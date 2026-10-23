@@ -78,7 +78,8 @@ export async function getGallery(category?: string, limit = 200) {
   return payload.find({
     collection: 'gallery',
     limit,
-    sort: '-year',
+    // Newest year first; within a year, the drag-and-drop order set in /admin
+    sort: ['-year', '_order'],
     where,
   })
 }

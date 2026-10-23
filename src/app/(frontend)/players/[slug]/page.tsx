@@ -76,6 +76,17 @@ function Jersey({ number }: { number?: number | null }) {
   )
 }
 
+/**
+ * Crop position for the hero photo. Uses the focal point set in /admin (Gallery → image →
+ * "Edit image" → focal point). Payload defaults it to 50/50 when untouched, so in that case fall
+ * back to slightly above centre, where a face usually sits in a portrait headshot.
+ */
+function photoPosition(photo: { focalX?: number | null; focalY?: number | null }): string {
+  const { focalX, focalY } = photo
+  if (focalX == null || focalY == null || (focalX === 50 && focalY === 50)) return 'center 30%'
+  return `${focalX}% ${focalY}%`
+}
+
 function FormatBadge({ name }: { name: string }) {
   const n = name.toLowerCase()
   let cls = 'bg-ardent/20 text-ardent-bright border-ardent/30'
@@ -172,7 +183,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                     src={player.photo.url}
                     alt={player.name}
                     fill
-                    className="object-cover object-top"
+                    className="object-cover"
+                    style={{ objectPosition: photoPosition(player.photo) }}
                     unoptimized
                     priority
                   />
