@@ -4,8 +4,10 @@ const isAuth = ({ req }: any) => !!req.user
 
 export const Committee: CollectionConfig = {
   slug: 'committee',
+  // Drag-and-drop ordering in /admin → Committee controls the order on the Committee page.
+  orderable: true,
   access: { read: () => true, create: isAuth, update: isAuth, delete: isAuth },
-  admin: { useAsTitle: 'name', defaultColumns: ['name', 'role', 'order'] },
+  admin: { useAsTitle: 'name', defaultColumns: ['name', 'role', 'phone'] },
   fields: [
     { name: 'name', type: 'text', required: true },
     {
@@ -19,7 +21,8 @@ export const Committee: CollectionConfig = {
     {
       name: 'order',
       type: 'number',
-      admin: { description: 'Controls display order on the Committee page (lower first)' },
+      // Superseded by drag-and-drop; still used as a tiebreak until members have been dragged once
+      admin: { hidden: true },
     },
   ],
 }

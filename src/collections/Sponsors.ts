@@ -5,7 +5,10 @@ const isAuth = ({ req }: any) => !!req.user
 export const Sponsors: CollectionConfig = {
   access: { read: () => true, create: isAuth, update: isAuth, delete: isAuth },
   slug: 'sponsors',
-  admin: { useAsTitle: 'name' },
+  // Drag-and-drop ordering in /admin → Sponsors. The site groups sponsors by tier and shows each
+  // tier in this order.
+  orderable: true,
+  admin: { useAsTitle: 'name', defaultColumns: ['name', 'tier', 'website'] },
   fields: [
     { name: 'name', type: 'text', required: true },
     { name: 'logo', type: 'upload', relationTo: 'gallery' },

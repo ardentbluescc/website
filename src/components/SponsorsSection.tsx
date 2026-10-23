@@ -44,7 +44,11 @@ function SponsorLogo({ sponsor, large = false }: { sponsor: any; large?: boolean
 
 export default function SponsorsSection({ sponsors }: { sponsors: any[] }) {
   const titleSponsor = sponsors.find((s) => s.tier === 'title')
-  const rest = sponsors.filter((s) => s.tier !== 'title')
+  // Tier first (gold → silver → bronze → untiered), then the drag-and-drop order from /admin
+  const tierRank = (t?: string) => ({ gold: 0, silver: 1, bronze: 2 } as Record<string, number>)[t ?? ''] ?? 3
+  const rest = sponsors
+    .filter((s) => s.tier !== 'title')
+    .sort((a, b) => tierRank(a.tier) - tierRank(b.tier))
 
   return (
     <section className="py-20 bg-navy-900 border-t border-ardent-border/40">

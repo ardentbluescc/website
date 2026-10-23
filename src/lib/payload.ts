@@ -89,7 +89,8 @@ export async function getSponsors() {
   return payload.find({
     collection: 'sponsors',
     limit: 20,
-    sort: 'tier',
+    // Drag-and-drop order from /admin; pages group by tier themselves
+    sort: '_order',
   })
 }
 
@@ -98,6 +99,7 @@ export async function getCommittee() {
   return payload.find({
     collection: 'committee',
     limit: 50,
-    sort: 'order',
+    // Drag-and-drop order from /admin, falling back to the old number field for undragged members
+    sort: ['_order', 'order'],
   })
 }
